@@ -1,0 +1,305 @@
+{
+  "schema_version": "catalog-v1",
+  "provenance": [
+    {
+      "name": "fixture",
+      "version": "v1"
+    }
+  ],
+  "rows": [
+    {
+      "runtime": "rt-c",
+      "model": "mini",
+      "effort": "low",
+      "family": "one",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 35,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.05,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-b",
+      "model": "base",
+      "effort": "medium",
+      "family": "one",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 55,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.2,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-a",
+      "model": "alpha",
+      "effort": "high",
+      "family": "one",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 68,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.28,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-d",
+      "model": "delta",
+      "effort": "high",
+      "family": "four",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 68,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.3,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-s",
+      "model": "super",
+      "effort": "max",
+      "family": "one",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 88,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.8,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "muse",
+      "model": "muse",
+      "effort": "low",
+      "family": "two",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 95,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.1,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {
+        "only_effort": "max"
+      }
+    },
+    {
+      "runtime": "muse",
+      "model": "muse",
+      "effort": "max",
+      "family": "two",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 82,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.7,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {
+        "only_effort": "max"
+      }
+    },
+    {
+      "runtime": "rt-u",
+      "model": "unknown",
+      "effort": "high",
+      "family": "unknown",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "usd_per_task": 0.01,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-meter",
+      "model": "meter",
+      "effort": "max",
+      "family": "meter",
+      "billing": "metered",
+      "quality": {
+        "coding": {
+          "value": 99,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.01,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-local",
+      "model": "local",
+      "effort": "high",
+      "family": "local",
+      "billing": "local",
+      "quality": {
+        "coding": {
+          "value": 85,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.02,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-n",
+      "model": "blocked",
+      "effort": "max",
+      "family": "blocked",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 95,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.01,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {
+        "not_for": [
+          "windows"
+        ]
+      }
+    },
+    {
+      "runtime": "rt-z",
+      "model": "sigma",
+      "effort": "max",
+      "family": "three",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 80,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        },
+        "overall": {
+          "value": 90,
+          "kind": "vendor",
+          "source": "fixture",
+          "as_of": "2026-10-04"
+        }
+      },
+      "cost": {
+        "usd_per_task": 1.0,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "rt-e",
+      "model": "boundary",
+      "effort": "high",
+      "family": "five",
+      "billing": "subscription",
+      "quality": {
+        "coding": {
+          "value": 76,
+          "kind": "measured",
+          "source": "fixture",
+          "as_of": "2026-10-04",
+          "stderr": 2
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.29,
+        "kind": "estimate",
+        "source": "fixture",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    }
+  ]
+}

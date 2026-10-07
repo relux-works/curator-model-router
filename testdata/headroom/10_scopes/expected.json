@@ -1,0 +1,89 @@
+{
+  "order": [
+    "b",
+    "a"
+  ],
+  "reason_codes": {
+    "a": [
+      "config_order_preserved",
+      "quota_no_applicable_window",
+      "quota_scope_unmapped"
+    ],
+    "b": [
+      "config_order_preserved",
+      "quota_expiring"
+    ]
+  },
+  "explain": {
+    "schema_version": "v1",
+    "as_of": 1800000000,
+    "candidates": [
+      {
+        "candidate_id": "a",
+        "billing_class": "subscription",
+        "base_position": 0,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "family-a",
+              "minutes": 300,
+              "used_bp": 2000,
+              "resets_at": 1800009000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": false,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_no_applicable_window",
+          "quota_scope_unmapped"
+        ],
+        "final_position": 1
+      },
+      {
+        "candidate_id": "b",
+        "billing_class": "subscription",
+        "base_position": 1,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "family-b",
+              "minutes": 300,
+              "used_bp": 2000,
+              "resets_at": 1800009000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 8000,
+            "time_left_bp": 5000,
+            "slack_bp": 3000
+          }
+        ],
+        "headroom_bp": 8000,
+        "slack_bp": 3000,
+        "band": 3,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_expiring"
+        ],
+        "final_position": 0
+      }
+    ]
+  }
+}

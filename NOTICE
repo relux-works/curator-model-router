@@ -1,0 +1,13 @@
+curator-model-router
+Copyright 2026 Relux Works
+
+This module is licensed under Apache-2.0; see LICENSE.
+
+The catalog and transformed benchmark evidence include measurements from Bug Hunt Bench by Pawel Huryn (Product Compass), whose README declares MIT reuse and requests a link back.
+Repository: https://github.com/phuryn/bug-hunt-bench
+Benchmark: https://bughunt.productcompass.pm
+Pinned catalog data: commit 1217192a6d04e89da3f6106ca3a304d2734882eb
+
+Suggested upstream citation is reproduced in catalog/NOTES.md.
+
+Benchmark scores are normalized and uncertainty is derived by this module; they describe the publisher's protocol, not project success rates. Third-party data retains its upstream reuse terms.

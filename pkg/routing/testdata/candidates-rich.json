@@ -1,0 +1,124 @@
+{
+  "schema_version": "v1",
+  "as_of": 1800000000,
+  "scope_map": {
+    "version": "v1",
+    "entries": [
+      {
+        "runtime": "runtime-a",
+        "scope": "family-a",
+        "model_ids": [
+          "model-a"
+        ]
+      },
+      {
+        "runtime": "runtime-b",
+        "scope": "family-a",
+        "model_ids": [
+          "model-b"
+        ]
+      }
+    ]
+  },
+  "usage_facts": [
+    {
+      "key": "key-a",
+      "runtime": "runtime-a",
+      "state": "exact",
+      "windows": [
+        {
+          "id": "session",
+          "scope": "model-a",
+          "minutes": 300,
+          "used_bp": 0,
+          "observed_at": 1800000000,
+          "freshness": "fresh"
+        },
+        {
+          "id": "weekly",
+          "scope": "all",
+          "minutes": 10080,
+          "freshness": "invalid"
+        }
+      ],
+      "record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "failure_count": 0,
+      "credits": {
+        "balance": 0,
+        "unit": "credits",
+        "unlimited": false
+      }
+    },
+    {
+      "key": "key-b",
+      "runtime": "runtime-a",
+      "state": "absent",
+      "windows": [],
+      "failure_count": 1
+    }
+  ],
+  "inflight": [
+    {
+      "key": "key-a",
+      "runs": 0
+    },
+    {
+      "key": "key-b",
+      "runs": 1
+    }
+  ],
+  "candidates": [
+    {
+      "id": "a",
+      "runtime_binding_id": "binding-a",
+      "runtime": "runtime-a",
+      "model": "model-a",
+      "effort": "High",
+      "context_profile": {
+        "name": "default",
+        "lock_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "transport": "native",
+      "provider_id": "provider-a",
+      "tool_profile": "standard",
+      "execution_mode": "interactive",
+      "billing_class": "subscription",
+      "usage_key": "key-a",
+      "engine_profile": {
+        "name": "engine-a",
+        "engine_kind": "local",
+        "weight_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "quantization": "q4",
+        "kv_context_tokens": 0,
+        "prefill_chunk_tokens": 128
+      },
+      "network_profile": "network-a"
+    },
+    {
+      "id": "b",
+      "runtime_binding_id": "binding-b",
+      "runtime": "runtime-a",
+      "model": "model-a",
+      "effort": "unknown",
+      "context_profile": {
+        "name": "default",
+        "lock_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "transport": "native",
+      "provider_id": "provider-a",
+      "tool_profile": "standard",
+      "execution_mode": "interactive",
+      "billing_class": "subscription",
+      "usage_key": "key-b"
+    }
+  ],
+  "source": {
+    "name": "fixture",
+    "version": "v1",
+    "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+  },
+  "config_order": [
+    "b",
+    "a"
+  ]
+}

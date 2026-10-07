@@ -1,0 +1,39 @@
+{
+  "schema_version": "v1",
+  "strategy": "cost-with-quality-floor",
+  "mode": "shadow",
+  "free_field_mask": [
+    "effort",
+    "model",
+    "runtime"
+  ],
+  "headroom": {
+    "enabled": true,
+    "equivalence": "declared-groups",
+    "groups": [
+      [
+        {
+          "model": "model-a",
+          "effort": "High"
+        },
+        {
+          "runtime": "runtime-b",
+          "model": "model-b",
+          "effort": "low"
+        }
+      ]
+    ],
+    "protected_roles": [
+      "reviewer"
+    ],
+    "reserve_bp": 1500,
+    "band_width_bp": 500,
+    "expiring_band": 4,
+    "conserve_band": -3,
+    "windows": [
+      "session",
+      "weekly"
+    ],
+    "on_all_reserved": "abstain"
+  }
+}

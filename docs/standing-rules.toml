@@ -1,0 +1,110 @@
+# Example operator policy template. Decode into recommend.DefaultPolicy().
+# Exact canonical names only; the CLI resolves aliases and supplies the hostname.
+# Keep rule order: hard filters accumulate and forbid always beats require.
+# These are operator constraints, not evidence of candidate admission.
+schema_version = "recommend-policy-v1"
+
+[tier_edges]
+s = 62
+a = 56
+b = 45
+
+# Measured values (Bug Hunt review and fallback quality) use review_tier_edges;
+# index values supplied by an operator overlay use tier_edges.
+[review_tier_edges]
+s = 40
+a = 30
+b = 20
+
+[[rules]]
+id = "host-codex-first"
+source = "operator ruling: host reviewer pin (example)"
+rationale = "Prefer Codex inside each qualified tier; demanding reviews prefer Codex only within the best-quality band."
+[rules.when]
+host = "<your-build-host>"
+difficulty = ["trivial", "routine", "standard", "hard", "critical"]
+[rules.prefer]
+runtimes = ["codex", "claude", "agy", "muse", "local-qwen"]
+
+[[rules]]
+id = "host-review-astra-medium"
+source = "operator ruling: host reviewer pin (example)"
+rationale = "Pin normal trivial/routine/standard build-host reviews to Astra medium; stronger reviews retain the tier floor and Codex preference."
+[rules.when]
+host = "<your-build-host>"
+role = "reviewer"
+difficulty = ["trivial", "routine", "standard"]
+sensitivity = ["normal"]
+[rules.require]
+runtime = "codex"
+model = "gpt-6-astra"
+[rules.effort]
+pin = "medium"
+
+[[rules]]
+id = "codex-quota-stop"
+source = "operator ruling: quota stop (example)"
+rationale = "Stop Codex when any applicable known window, including weekly, has at most 25% headroom."
+quota_stop_bp = 2500
+[rules.when]
+runtime = "codex"
+
+[[rules]]
+id = "cross-provider-review"
+source = "operator ruling: cross-provider review (example); build-host exception operator ruling: host reviewer pin (example)"
+rationale = "Review across producer families, with same-provider last resort and the explicit build-host exception."
+[rules.when]
+role = "reviewer"
+[rules.cross_provider_review]
+allow_same_provider_fallback = true
+except_hosts = ["<your-build-host>"]
+
+[[rules]]
+id = "refusal-rotation"
+source = "operator ruling: refusal rotation (example)"
+rationale = "Honor caller --exclude runtime/model pairs after a model refuses."
+exclude = true
+[rules.when]
+
+# operator ruling: second host pairs (example): <your-other-host> pairs are documented placeholders, deliberately inactive.
+# The supplied spec names this ruling but supplies no concrete role/model pairs.
+# Fill the canonical runtime/model/effort and role, then uncomment each rule.
+# [[rules]]
+# id = "<your-other-host>-producer-pair"
+# source = "operator ruling: second host pairs (example)"
+# rationale = "Use the operator's <your-other-host> producer pair once its exact values are supplied."
+# [rules.when]
+# host = "<your-other-host>"
+# role = "developer"
+# [rules.require]
+# runtime = "<fill runtime>"
+# model = "<fill canonical model>"
+# [rules.effort]
+# pin = "<fill effort>"
+#
+# [[rules]]
+# id = "<your-other-host>-reviewer-pair"
+# source = "operator ruling: second host pairs (example)"
+# rationale = "Use the operator's <your-other-host> reviewer pair once its exact values are supplied."
+# [rules.when]
+# host = "<your-other-host>"
+# role = "reviewer"
+# [rules.require]
+# runtime = "<fill runtime>"
+# model = "<fill canonical model>"
+# [rules.effort]
+# pin = "<fill effort>"
+
+# Example story exception; sol resolves to gpt-6.1-sol per catalog/NOTES.md.
+# Story IDs are caller-provided; <PROJECT-ID> is the project context for this example.
+[[rules]]
+id = "story-sol-high"
+source = "per-story operator exception: <PROJECT-ID>/<STORY-ID>"
+rationale = "Pin <PROJECT-ID> story <STORY-ID> to Sol high as explicitly ruled."
+[rules.when]
+story = "<STORY-ID>"
+[rules.require]
+runtime = "codex"
+model = "gpt-6.1-sol"
+[rules.effort]
+pin = "high"

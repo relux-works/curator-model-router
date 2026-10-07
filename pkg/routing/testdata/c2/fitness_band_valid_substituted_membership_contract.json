@@ -1,0 +1,46 @@
+{
+  "equal": false,
+  "differences": [
+    {
+      "member": "$.routing.evaluation.estimator_partition",
+      "stored": {
+        "schema_version": "estimator-partition-v1",
+        "estimator_version": "suitability-bp-v1",
+        "groups": [
+          {
+            "id": "g-a",
+            "candidate_ids": [
+              "a",
+              "b"
+            ]
+          },
+          {
+            "id": "g-b",
+            "candidate_ids": [
+              "c"
+            ]
+          }
+        ]
+      },
+      "recomputed": {
+        "schema_version": "estimator-partition-v1",
+        "estimator_version": "suitability-bp-v1",
+        "groups": [
+          {
+            "id": "g-a",
+            "candidate_ids": [
+              "a",
+              "c"
+            ]
+          },
+          {
+            "id": "g-b",
+            "candidate_ids": [
+              "b"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

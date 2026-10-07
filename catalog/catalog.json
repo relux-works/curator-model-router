@@ -1,0 +1,1040 @@
+{
+  "schema_version": "catalog-v1",
+  "provenance": [
+    {
+      "name": "agents-management RegistryFacts and vendor declarations",
+      "version": "v0.5.40",
+      "digest": "sha256:5dfc2f74b9234a8b60c3e1d7e5c6ae9d9b0d1bb4b1b2b30db118ed90a6a25d9f"
+    },
+    {
+      "name": "Bug Hunt runs.csv supplemental evidence",
+      "version": "1217192a6d04e89da3f6106ca3a304d2734882eb",
+      "digest": "sha256:995ee322bab1019790fb58cc6c25af968e688f2952d8e28380e975f222407a74"
+    },
+    {
+      "name": "public catalog source rules; NOTES.md",
+      "version": "public-v1"
+    }
+  ],
+  "rows": [
+    {
+      "runtime": "agy",
+      "model": "gemini-3.5-flash-high",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.5-flash-low",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.5-flash-medium",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.6-flash-high",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.6-flash-low",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.6-flash-medium",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.7-flash-high",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 15.238095238095237,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-08-28",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 6.36,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-08-28"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "agy",
+      "model": "gemini-3.8-flash-high",
+      "effort": "none",
+      "family": "google",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 17.142857142857142,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-15",
+          "stderr": 1.454785934906616,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 11.023333333333333,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-15"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "high",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 31.428571428571427,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-01",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 48.58,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-01"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "low",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 27.61904761904762,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-02",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 33.0,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-02"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "max",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 40.95238095238095,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-01",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 87.18,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-01"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "medium",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 20,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-10",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 23.73,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-10"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-fable-5-1",
+      "effort": "xhigh",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 27.61904761904762,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-10",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 53.61,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-10"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-haiku-4-5",
+      "effort": "none",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "usd_per_task": 0.14,
+        "tokens_per_task": 108000,
+        "kind": "estimate",
+        "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+        "as_of": "2026-10-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 30.15873015873016,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 0.3174603174603175,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 22.243333333333336,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "low",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 21.269841269841265,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 1.6798421022632324,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 8.34,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "max",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 39.68253968253968,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 1.2698412698412698,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 58.52333333333333,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 28.888888888888886,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 0.3174603174603175,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 15.686666666666667,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "xhigh",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 34.285714285714285,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 0.5498573992282151,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 34.98,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 32.6984126984127,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-29",
+          "stderr": 1.3837774423938645,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 19.853333333333335,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-29"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "low",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 18.095238095238095,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-30",
+          "stderr": 0.9523809523809523,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 5.733333333333333,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-30"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 48.88888888888889,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-29",
+          "stderr": 4.053062011048795,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 154.04,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-29"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 22.222222222222218,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-30",
+          "stderr": 2.767554884787729,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 11.116666666666667,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-30"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "xhigh",
+      "family": "anthropic",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 34.285714285714285,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-29",
+          "stderr": 1.454785934906616,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 42.85666666666666,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-29"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 33.333333333333336,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-04",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 20.6,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "low",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 25.714285714285715,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-05",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 11.69,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-05"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "max",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 42.857142857142854,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-14",
+          "stderr": 2.396772836593889,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 33.03,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-14"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 32.38095238095238,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-05",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 15.78,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-05"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "xhigh",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 40.95238095238095,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-04",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 24.22,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-04"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "high",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 8.571428571428571,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.13,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "low",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 3.8095238095238093,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.2,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "max",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 17.46031746031746,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 1.26984126984127,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.5266666666666667,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 3.8095238095238093,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.06,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "xhigh",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 13.333333333333334,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 0.39,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 19.047619047619047,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 4.16,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-sol",
+      "effort": "low",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 5.714285714285714,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 1.08,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-sol",
+      "effort": "max",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 27.936507936507933,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 1.6798421022632324,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 9.336666666666666,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-sol",
+      "effort": "medium",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 13.333333333333334,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 2.39,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6-sol",
+      "effort": "xhigh",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 23.80952380952381,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-23",
+          "stderr": 3.1290977258386636,
+          "n": 1
+        }
+      },
+      "cost": {
+        "usd_per_task": 7.67,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-23"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 34.76190476190476,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-30",
+          "stderr": 1.4285714285714284,
+          "n": 2
+        }
+      },
+      "cost": {
+        "usd_per_task": 3.2649999999999997,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-30"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "low",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 21.428571428571427,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-10-01",
+          "stderr": 8.095238095238093,
+          "n": 2
+        }
+      },
+      "cost": {
+        "usd_per_task": 1.335,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-10-01"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "max",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 42.22222222222223,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-30",
+          "stderr": 1.3837774423938645,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 5.88,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-30"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 27.61904761904762,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-30",
+          "stderr": 0.9523809523809523,
+          "n": 2
+        }
+      },
+      "cost": {
+        "usd_per_task": 1.76,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-30"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "family": "openai",
+      "billing": "subscription",
+      "quality": {
+        "review": {
+          "value": 40.63492063492063,
+          "kind": "measured",
+          "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+          "as_of": "2026-09-30",
+          "stderr": 0.8399210511316161,
+          "n": 3
+        }
+      },
+      "cost": {
+        "usd_per_task": 4.346666666666667,
+        "kind": "estimate",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-30"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "local-qwen",
+      "model": "qwen-3.8-27b-mlx-8bit",
+      "effort": "none",
+      "family": "alibaba",
+      "billing": "local",
+      "quality": {},
+      "cost": {
+        "usd_per_task": 0,
+        "kind": "estimate",
+        "source": "operator assumption: incremental API charge only; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {}
+    },
+    {
+      "runtime": "muse",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "max",
+      "family": "meta",
+      "billing": "subscription",
+      "quality": {},
+      "cost": {
+        "kind": "estimate",
+        "source": "operator: task cost unknown; NOTES.md",
+        "as_of": "2026-10-07"
+      },
+      "constraints": {
+        "only_effort": "max"
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "v1",
+  "evidence_snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "measurements": [],
+  "assessments": [],
+  "estimates": [
+    {
+      "candidate_id": "a",
+      "fitness": 6000,
+      "coverage": 10000,
+      "contributing_record_ids": [],
+      "estimator_version": "suitability-bp-v1"
+    },
+    {
+      "candidate_id": "b",
+      "fitness": 6000,
+      "coverage": 10000,
+      "contributing_record_ids": [],
+      "estimator_version": "suitability-bp-v1"
+    }
+  ],
+  "evaluator_versions": [
+    {
+      "name": "fitness-estimator",
+      "version": "suitability-bp-v1"
+    }
+  ],
+  "estimator_partition": {
+    "schema_version": "estimator-partition-v1",
+    "estimator_version": "suitability-bp-v1",
+    "groups": [
+      {
+        "id": "opaque",
+        "candidate_ids": [
+          "a",
+          "b"
+        ]
+      }
+    ]
+  }
+}

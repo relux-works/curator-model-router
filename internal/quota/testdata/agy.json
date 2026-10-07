@@ -1,0 +1,51 @@
+{
+  "status": "SUCCESS",
+  "num_turns": 0,
+  "command": {
+    "name": "usage",
+    "data": {
+      "groups": [
+        {
+          "name": "Gemini Models",
+          "description": "Models within this group: Gemini Flash, Gemini Pro",
+          "buckets": [
+            {
+              "id": "gemini-weekly",
+              "name": "Weekly Limit Remaining",
+              "window": "weekly",
+              "remaining_fraction": 1,
+              "reset_time": "2026-09-14T19:42:54Z"
+            },
+            {
+              "id": "gemini-5h",
+              "name": "5h Limit Remaining",
+              "window": "5h",
+              "remaining_fraction": 1,
+              "reset_time": "2026-09-14T19:42:54Z"
+            }
+          ]
+        },
+        {
+          "name": "Claude and GPT models",
+          "description": "Claude Opus, Claude Sonnet, GPT-OSS",
+          "buckets": [
+            {
+              "id": "3p-weekly",
+              "name": "Weekly Limit Remaining",
+              "window": "weekly",
+              "remaining_fraction": 1,
+              "reset_time": "2026-09-14T19:42:54Z"
+            },
+            {
+              "id": "3p-5h",
+              "name": "5h Limit Remaining",
+              "window": "5h",
+              "remaining_fraction": 1,
+              "reset_time": "2026-09-14T19:42:54Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

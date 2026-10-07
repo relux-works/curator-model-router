@@ -1,0 +1,19 @@
+{
+  "schema_version": "overlay-v1",
+  "rows": {
+    "codex": {
+      "gpt-6-luna": {
+        "low": {
+          "quality": {
+            "coding": {"value": 91, "kind": "estimate", "source": "FICTIONAL TEST DATA: invented coding index, never a benchmark", "as_of": "2026-10-07"},
+            "overall": {"value": 89, "kind": "estimate", "source": "FICTIONAL TEST DATA: invented overall index, never a benchmark", "as_of": "2026-10-07"}
+          },
+          "cost": {
+            "usd_per_task": {"value": 0.001, "kind": "estimate", "source": "FICTIONAL TEST DATA: invented cost", "as_of": "2026-10-07"},
+            "tokens_per_task": {"value": 12, "kind": "estimate", "source": "FICTIONAL TEST DATA: invented token count", "as_of": "2026-10-06"}
+          }
+        }
+      }
+    }
+  }
+}

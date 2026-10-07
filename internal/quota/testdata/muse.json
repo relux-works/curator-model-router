@@ -1,0 +1,15 @@
+{
+  "usage": {
+    "tier": "subscription",
+    "observedAtMs": 1790856000000,
+    "window": {
+      "usedPercent": 140,
+      "windowDurationMins": 300,
+      "resetsAtMs": 1790866800000
+    },
+    "weekly": {
+      "usedPercent": 59,
+      "resetsAtMs": 1791205200000
+    }
+  }
+}

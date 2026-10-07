@@ -1,0 +1,8 @@
+.build/
+bin/
+*.test
+coverage.out
+.temp/
+.task-board/
+go.work
+go.work.sum

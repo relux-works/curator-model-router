@@ -1,0 +1,133 @@
+{
+  "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+  "registry": "skill-agents-management@v0.5.40",
+  "csv_sha256": "429e9a72386600e5d6ae5ffdfeceefb45020de8d18cc5a88fbfd49434f74f32e",
+  "live_runs": 9,
+  "pooled_sd_fixed_points": 2.8284271247461903,
+  "pooled_df": 2,
+  "measurements": [
+    {
+      "harness": "Antigravity CLI",
+      "model": "Gemini 3.8 Flash",
+      "effort": "high",
+      "candidate": {
+        "runtime": "agy",
+        "model": "gemini-3.8-flash-high",
+        "effort": "none"
+      },
+      "quality": {
+        "value": 17.142857142857142,
+        "kind": "measured",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-02",
+        "stderr": 2.6937401188058954,
+        "n": 1
+      },
+      "mean_wall_minutes": 40,
+      "mean_list_equivalent_cost_usd": 5,
+      "runs": [
+        "gemini"
+      ]
+    },
+    {
+      "harness": "Codex CLI",
+      "model": "GPT-6 Astra",
+      "effort": "medium",
+      "candidate": {
+        "runtime": "codex",
+        "model": "gpt-6-astra",
+        "effort": "medium"
+      },
+      "quality": {
+        "value": 33.333333333333336,
+        "kind": "measured",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-03",
+        "stderr": 2.6937401188058954,
+        "n": 1
+      },
+      "mean_wall_minutes": 30,
+      "mean_list_equivalent_cost_usd": 6,
+      "runs": [
+        "astra"
+      ]
+    },
+    {
+      "harness": "Codex CLI",
+      "model": "GPT-6.1 Sol",
+      "effort": "high",
+      "candidate": {
+        "runtime": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      },
+      "quality": {
+        "value": 21.904761904761905,
+        "kind": "measured",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-02",
+        "stderr": 1.9047619047619047,
+        "n": 2
+      },
+      "mean_wall_minutes": 15,
+      "mean_list_equivalent_cost_usd": 3,
+      "runs": [
+        "sol-a",
+        "sol-b"
+      ]
+    },
+    {
+      "harness": "Claude Code",
+      "model": "Opus 5.5",
+      "effort": "max",
+      "candidate": {
+        "runtime": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "max"
+      },
+      "quality": {
+        "value": 40,
+        "kind": "measured",
+        "source": "https://github.com/phuryn/bug-hunt-bench@1217192a6d04e89da3f6106ca3a304d2734882eb",
+        "as_of": "2026-09-04",
+        "stderr": 1.9047619047619047,
+        "n": 2
+      },
+      "mean_wall_minutes": 40,
+      "mean_list_equivalent_cost_usd": 9,
+      "runs": [
+        "opus-a",
+        "opus-b"
+      ]
+    }
+  ],
+  "unmapped": [
+    {
+      "harness": "Claude Code / OpenRouter",
+      "model": "Qwen3.8-27B 8-bit",
+      "effort": "default",
+      "runs": [
+        "hosted"
+      ],
+      "reason": "harness_unmapped"
+    },
+    {
+      "harness": "Gemini CLI (retired) + model-pinning gateway",
+      "model": "Gemini 3.8 Flash",
+      "effort": "high",
+      "runs": [
+        "retired"
+      ],
+      "reason": "harness_unmapped"
+    },
+    {
+      "harness": "Muse Code / Meta API",
+      "model": "Muse Spark 1.3",
+      "effort": "max",
+      "runs": [
+        "muse"
+      ],
+      "reason": "harness_binding_unverified"
+    }
+  ]
+}

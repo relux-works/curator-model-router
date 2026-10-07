@@ -1,0 +1,105 @@
+{
+  "order": [
+    "a",
+    "b"
+  ],
+  "reason_codes": {
+    "a": [
+      "config_order_preserved",
+      "quota_partial",
+      "quota_stale"
+    ],
+    "b": [
+      "config_order_preserved",
+      "quota_on_pace"
+    ]
+  },
+  "explain": {
+    "schema_version": "v1",
+    "as_of": 1800000000,
+    "candidates": [
+      {
+        "candidate_id": "a",
+        "billing_class": "subscription",
+        "base_position": 0,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 0,
+              "resets_at": 1800001000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 10000,
+            "time_left_bp": 555,
+            "slack_bp": 9445
+          },
+          {
+            "window": {
+              "id": "weekly",
+              "scope": "all",
+              "minutes": 10080,
+              "used_bp": 1000,
+              "resets_at": 1800010000,
+              "observed_at": 1799996400,
+              "freshness": "stale"
+            },
+            "applicable": true,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_partial",
+          "quota_stale"
+        ],
+        "final_position": 0
+      },
+      {
+        "candidate_id": "b",
+        "billing_class": "subscription",
+        "base_position": 1,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 5000,
+              "resets_at": 1800009000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 5000,
+            "time_left_bp": 5000,
+            "slack_bp": 0
+          }
+        ],
+        "headroom_bp": 5000,
+        "slack_bp": 0,
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_on_pace"
+        ],
+        "final_position": 1
+      }
+    ]
+  }
+}

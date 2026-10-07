@@ -1,0 +1,226 @@
+{
+  "order": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f"
+  ],
+  "reason_codes": {
+    "a": [
+      "config_order_preserved",
+      "quota_stale"
+    ],
+    "b": [
+      "config_order_preserved",
+      "quota_expired"
+    ],
+    "c": [
+      "config_order_preserved",
+      "quota_invalid"
+    ],
+    "d": [
+      "config_order_preserved",
+      "quota_invalid"
+    ],
+    "e": [
+      "config_order_preserved",
+      "quota_invalid"
+    ],
+    "f": [
+      "config_order_preserved",
+      "quota_on_pace"
+    ]
+  },
+  "explain": {
+    "schema_version": "v1",
+    "as_of": 1800000000,
+    "candidates": [
+      {
+        "candidate_id": "a",
+        "billing_class": "subscription",
+        "base_position": 0,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 15000,
+              "resets_at": 1800009000,
+              "observed_at": 1799999000,
+              "freshness": "stale"
+            },
+            "applicable": true,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_stale"
+        ],
+        "final_position": 0
+      },
+      {
+        "candidate_id": "b",
+        "billing_class": "subscription",
+        "base_position": 1,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 15000,
+              "resets_at": 1800000000,
+              "observed_at": 1800000000,
+              "freshness": "expired"
+            },
+            "applicable": true,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_expired"
+        ],
+        "final_position": 1
+      },
+      {
+        "candidate_id": "c",
+        "billing_class": "subscription",
+        "base_position": 2,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 9223372036854775807,
+              "used_bp": 9223372036854775807,
+              "resets_at": 1800009000,
+              "observed_at": 1800000000,
+              "freshness": "invalid"
+            },
+            "applicable": true,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_invalid"
+        ],
+        "final_position": 2
+      },
+      {
+        "candidate_id": "d",
+        "billing_class": "subscription",
+        "base_position": 3,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 2000,
+              "resets_at": 1800009000,
+              "observed_at": 1800000001,
+              "freshness": "invalid"
+            },
+            "applicable": true,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_invalid"
+        ],
+        "final_position": 3
+      },
+      {
+        "candidate_id": "e",
+        "billing_class": "subscription",
+        "base_position": 4,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 2000,
+              "resets_at": 1800009000,
+              "freshness": "invalid"
+            },
+            "applicable": true,
+            "known": false
+          }
+        ],
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_invalid"
+        ],
+        "final_position": 4
+      },
+      {
+        "candidate_id": "f",
+        "billing_class": "subscription",
+        "base_position": 5,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 5000,
+              "resets_at": 1800009000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 5000,
+            "time_left_bp": 5000,
+            "slack_bp": 0
+          }
+        ],
+        "headroom_bp": 5000,
+        "slack_bp": 0,
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_on_pace"
+        ],
+        "final_position": 5
+      }
+    ]
+  }
+}

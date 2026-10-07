@@ -1,0 +1,6 @@
+{
+  "num_turns": 0,
+  "duration_api_ms": 0,
+  "is_error": false,
+  "result": "You are currently using your subscription to power your Claude Code usage\n\nCurrent session: 76% used \u00b7 resets Sep 7 at 6:39pm (Asia/Tbilisi)\nCurrent week (all models): 54% used \u00b7 resets Sep 13 at 4:59am (Asia/Tbilisi)\nCurrent week (Fable): 33% used \u00b7 resets Sep 13 at 4:59am (Asia/Tbilisi)\n\nWhat's contributing to your limits usage?\nApproximate, based on local sessions on this machine\nLast 24h \u00b7 7136 requests \u00b7 85 sessions"
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": "v1",
+  "evidence_snapshot_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "measurements": [
+    "obs:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  ],
+  "rubric": {
+    "id": "quality",
+    "version": "v1",
+    "requirements": {
+      "items": [
+        {
+          "category": "code.implement",
+          "weight_bp": 10000
+        }
+      ]
+    }
+  },
+  "assessments": [],
+  "estimates": [
+    {
+      "candidate_id": "a",
+      "fitness": 0,
+      "coverage": 10000,
+      "contributing_record_ids": [
+        "note:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "obs:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ],
+      "estimator_version": "v1"
+    }
+  ],
+  "evaluator_versions": [
+    {
+      "name": "estimator",
+      "version": "v1"
+    }
+  ]
+}

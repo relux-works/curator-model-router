@@ -1,0 +1,18 @@
+{
+  "schema_version": "estimator-partition-v1",
+  "estimator_version": "suitability-bp-v1",
+  "groups": [
+    {
+      "id": "fitness-band:5fd2b53b9a9eb5d36ae4d1c3f46f03a3d8e504f84be689262ab4f315d0d29713",
+      "candidate_ids": [
+        "b"
+      ]
+    },
+    {
+      "id": "fitness-band:a7ce053f279377d9218df7139d0c97d21bffcf916ac3a0c877f418959731bf4c",
+      "candidate_ids": [
+        "a"
+      ]
+    }
+  ]
+}

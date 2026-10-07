@@ -1,0 +1,51 @@
+{
+  "decision_id": "sha256:00735756009cd38045c6bd4c12c463854c4c08fed7002b3d627516076a7934fd",
+  "schema_version": "v1",
+  "task_envelope_digest": "sha256:b885e09b9d90bfab1ba11f8f2453563c597c5354d682639bb2dfe950253d1120",
+  "role_context_digest": "sha256:14dad1f107e6f924425f792a84f60568446ecfc2a1e9d7b2831374b127986d27",
+  "candidate_snapshot_digest": "sha256:4cffc6d73deba164c72a340e5c65532b3c74a7f3ca1f4d6201d81ba8c58c5b80",
+  "evaluation_snapshot_digest": "sha256:dab4c365b4d7266bed615c115082546cea1be8ad79100701c6a51a37873fab2d",
+  "routing_policy_digest": "sha256:ad7705f26b7e27e38550a329783c6645bf4690971b2eba7c567efaa882814fa5",
+  "assessor_version": "unknown",
+  "estimator_version": "suitability-bp-v1",
+  "selector_version": "router-core-v1",
+  "selected_candidate": {
+    "id": "b",
+    "runtime_binding_id": "binding-b",
+    "runtime": "runtime-a",
+    "model": "model-a",
+    "effort": "high",
+    "context_profile": {
+      "name": "standard",
+      "lock_sha256": "unknown"
+    },
+    "transport": "native",
+    "provider_id": "provider-a",
+    "tool_profile": "standard",
+    "execution_mode": "batch",
+    "billing_class": "subscription",
+    "usage_key": "key-b"
+  },
+  "alternatives": [
+    {
+      "candidate_id": "a",
+      "position": 1,
+      "base_position": 0,
+      "reason_codes": [
+        "config_order_preserved",
+        "inflight_spread",
+        "quota_expiring"
+      ]
+    }
+  ],
+  "reason_codes": [
+    "config_order_preserved",
+    "inflight_spread",
+    "quota_expiring"
+  ],
+  "evidence_refs": [],
+  "selection_origin": "router",
+  "applicability_scope": "fixture",
+  "prepared_at": 1800000000,
+  "outcome": "selected"
+}

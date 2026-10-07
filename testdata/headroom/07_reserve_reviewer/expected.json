@@ -1,0 +1,92 @@
+{
+  "order": [
+    "a",
+    "b"
+  ],
+  "reason_codes": {
+    "a": [
+      "config_order_preserved",
+      "quota_on_pace"
+    ],
+    "b": [
+      "config_order_preserved",
+      "quota_on_pace"
+    ]
+  },
+  "explain": {
+    "schema_version": "v1",
+    "as_of": 1800000000,
+    "candidates": [
+      {
+        "candidate_id": "a",
+        "billing_class": "subscription",
+        "base_position": 0,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 8500,
+              "resets_at": 1800001000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 1500,
+            "time_left_bp": 555,
+            "slack_bp": 945
+          }
+        ],
+        "headroom_bp": 1500,
+        "slack_bp": 945,
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_on_pace"
+        ],
+        "final_position": 0
+      },
+      {
+        "candidate_id": "b",
+        "billing_class": "subscription",
+        "base_position": 1,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 5000,
+              "resets_at": 1800009000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 5000,
+            "time_left_bp": 5000,
+            "slack_bp": 0
+          }
+        ],
+        "headroom_bp": 5000,
+        "slack_bp": 0,
+        "band": 0,
+        "over": false,
+        "reserve": false,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_on_pace"
+        ],
+        "final_position": 1
+      }
+    ]
+  }
+}

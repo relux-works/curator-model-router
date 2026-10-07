@@ -1,0 +1,13 @@
+{
+  "schema_version": "v1",
+  "description": "Implement a deterministic parser",
+  "substantive_revision": "revision-1",
+  "role": "developer",
+  "criteria": [
+    "Reject malformed input"
+  ],
+  "context": [],
+  "tools": [
+    "terminal"
+  ]
+}

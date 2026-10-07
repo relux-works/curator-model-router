@@ -1,0 +1,66 @@
+[
+  {
+    "name": "01_trivial_cheap_low_effort",
+    "difficulty": "trivial",
+    "selected": "mini"
+  },
+  {
+    "name": "02_hard_a_or_above",
+    "difficulty": "hard",
+    "selected": "super"
+  },
+  {
+    "name": "03_delicate_strongest",
+    "delicate": true,
+    "selected": "super"
+  },
+  {
+    "name": "04_muse_max_only",
+    "models": [
+      "muse"
+    ],
+    "selected": "muse",
+    "effort": "max"
+  },
+  {
+    "name": "05_exhausted_subscription_equivalent",
+    "models": [
+      "alpha",
+      "delta"
+    ],
+    "exhausted": true,
+    "selected": "delta"
+  },
+  {
+    "name": "06_fanout_distinct_families",
+    "fanout": true,
+    "selected": "super",
+    "fanout_models": [
+      "super",
+      "muse",
+      "sigma"
+    ]
+  },
+  {
+    "name": "07_metered_never_when_off",
+    "models": [
+      "meter",
+      "local"
+    ],
+    "selected": "local"
+  },
+  {
+    "name": "08_locked_flags_respected",
+    "agent": "rt-a",
+    "model": "alpha",
+    "effort_lock": "high",
+    "selected": "alpha"
+  },
+  {
+    "name": "09_empty_qualified_refuses",
+    "models": [
+      "mini"
+    ],
+    "refusal": "no_qualified_candidate"
+  }
+]

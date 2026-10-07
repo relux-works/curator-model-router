@@ -1,0 +1,242 @@
+{
+  "developer/build-host/balanced/critical": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/balanced/hard": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/balanced/routine": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/build-host/balanced/standard": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/build-host/balanced/trivial": {
+    "candidate": "codex/gpt-6-luna/medium",
+    "tier": "C"
+  },
+  "developer/build-host/burn/critical": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/burn/hard": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/burn/routine": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/burn/standard": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/burn/trivial": {
+    "candidate": "codex/gpt-6-astra/max",
+    "tier": "S"
+  },
+  "developer/build-host/economy/critical": {
+    "candidate": "codex/gpt-6.1-sol/max",
+    "tier": "S"
+  },
+  "developer/build-host/economy/hard": {
+    "candidate": "codex/gpt-6.1-sol/high",
+    "tier": "A"
+  },
+  "developer/build-host/economy/routine": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/build-host/economy/standard": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/build-host/economy/trivial": {
+    "candidate": "codex/gpt-6-luna/medium",
+    "tier": "C"
+  },
+  "developer/default/balanced/critical": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/balanced/hard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/balanced/routine": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/default/balanced/standard": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/default/balanced/trivial": {
+    "candidate": "codex/gpt-6-luna/medium",
+    "tier": "C"
+  },
+  "developer/default/burn/critical": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/burn/hard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/burn/routine": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/burn/standard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/burn/trivial": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "developer/default/economy/critical": {
+    "candidate": "codex/gpt-6.1-sol/max",
+    "tier": "S"
+  },
+  "developer/default/economy/hard": {
+    "candidate": "codex/gpt-6.1-sol/high",
+    "tier": "A"
+  },
+  "developer/default/economy/routine": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/default/economy/standard": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "developer/default/economy/trivial": {
+    "candidate": "codex/gpt-6-luna/medium",
+    "tier": "C"
+  },
+  "reviewer/build-host/balanced/critical": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/build-host/balanced/hard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/build-host/balanced/routine": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/balanced/standard": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/balanced/trivial": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/burn/critical": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/build-host/burn/hard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/build-host/burn/routine": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/burn/standard": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/burn/trivial": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/economy/critical": {
+    "candidate": "codex/gpt-6.1-sol/max",
+    "tier": "S"
+  },
+  "reviewer/build-host/economy/hard": {
+    "candidate": "codex/gpt-6.1-sol/high",
+    "tier": "A"
+  },
+  "reviewer/build-host/economy/routine": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/economy/standard": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/build-host/economy/trivial": {
+    "candidate": "codex/gpt-6-astra/medium",
+    "tier": "B"
+  },
+  "reviewer/default/balanced/critical": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/balanced/hard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/balanced/routine": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "reviewer/default/balanced/standard": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "reviewer/default/balanced/trivial": {
+    "candidate": "codex/gpt-6-luna/medium",
+    "tier": "C"
+  },
+  "reviewer/default/burn/critical": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/burn/hard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/burn/routine": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/burn/standard": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/burn/trivial": {
+    "candidate": "claude/claude-sonnet-5-5/max",
+    "tier": "S"
+  },
+  "reviewer/default/economy/critical": {
+    "candidate": "codex/gpt-6.1-sol/max",
+    "tier": "S"
+  },
+  "reviewer/default/economy/hard": {
+    "candidate": "codex/gpt-6.1-sol/high",
+    "tier": "A"
+  },
+  "reviewer/default/economy/routine": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "reviewer/default/economy/standard": {
+    "candidate": "codex/gpt-6.1-sol/medium",
+    "tier": "B"
+  },
+  "reviewer/default/economy/trivial": {
+    "candidate": "codex/gpt-6-luna/medium",
+    "tier": "C"
+  }
+}

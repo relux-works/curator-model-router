@@ -1,0 +1,98 @@
+{
+  "order": [],
+  "reason_codes": {
+    "a": [
+      "config_order_preserved",
+      "quota_on_pace",
+      "quota_reserve",
+      "reserve_breached"
+    ],
+    "b": [
+      "config_order_preserved",
+      "quota_on_pace",
+      "quota_reserve",
+      "reserve_breached"
+    ]
+  },
+  "explain": {
+    "schema_version": "v1",
+    "as_of": 1800000000,
+    "candidates": [
+      {
+        "candidate_id": "b",
+        "billing_class": "subscription",
+        "base_position": 0,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 9000,
+              "resets_at": 1800001000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 1000,
+            "time_left_bp": 555,
+            "slack_bp": 445
+          }
+        ],
+        "headroom_bp": 1000,
+        "slack_bp": 445,
+        "band": 0,
+        "over": false,
+        "reserve": true,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_on_pace",
+          "quota_reserve",
+          "reserve_breached"
+        ]
+      },
+      {
+        "candidate_id": "a",
+        "billing_class": "subscription",
+        "base_position": 1,
+        "group": "same-pair:86bd25c3305e",
+        "windows": [
+          {
+            "window": {
+              "id": "session",
+              "scope": "all",
+              "minutes": 300,
+              "used_bp": 9000,
+              "resets_at": 1800001000,
+              "observed_at": 1800000000,
+              "freshness": "fresh"
+            },
+            "applicable": true,
+            "known": true,
+            "remaining_bp": 1000,
+            "time_left_bp": 555,
+            "slack_bp": 445
+          }
+        ],
+        "headroom_bp": 1000,
+        "slack_bp": 445,
+        "band": 0,
+        "over": false,
+        "reserve": true,
+        "inflight": 0,
+        "reason_codes": [
+          "config_order_preserved",
+          "quota_on_pace",
+          "quota_reserve",
+          "reserve_breached"
+        ]
+      }
+    ],
+    "abstention": {
+      "reason": "reserve_breached"
+    }
+  }
+}

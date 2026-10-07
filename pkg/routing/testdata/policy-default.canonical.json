@@ -1,0 +1,1 @@
+{"free_field_mask":[],"headroom":{"band_width_bp":1000,"conserve_band":-2,"enabled":false,"equivalence":"same-pair-any-home","expiring_band":3,"groups":[],"on_all_reserved":"rank","protected_roles":["orchestrator","reviewer"],"reserve_bp":2000,"windows":"all"},"mode":"off","schema_version":"v1","strategy":"config-order"}

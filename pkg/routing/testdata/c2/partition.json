@@ -1,0 +1,13 @@
+{
+  "schema_version": "estimator-partition-v1",
+  "estimator_version": "suitability-bp-v1",
+  "groups": [
+    {
+      "id": "opaque",
+      "candidate_ids": [
+        "a",
+        "b"
+      ]
+    }
+  ]
+}

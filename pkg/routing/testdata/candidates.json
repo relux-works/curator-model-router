@@ -1,0 +1,133 @@
+{
+  "schema_version": "v1",
+  "as_of": 1800000000,
+  "scope_map": {
+    "version": "v1",
+    "entries": [
+      {
+        "runtime": "runtime-a",
+        "scope": "family-a",
+        "model_ids": [
+          "model-a"
+        ]
+      },
+      {
+        "runtime": "runtime-b",
+        "scope": "family-a",
+        "model_ids": [
+          "model-b"
+        ]
+      }
+    ]
+  },
+  "usage_facts": [
+    {
+      "key": "key-a",
+      "runtime": "runtime-a",
+      "state": "exact",
+      "windows": [
+        {
+          "id": "session",
+          "scope": "all",
+          "minutes": 300,
+          "used_bp": 0,
+          "resets_at": 1800000600,
+          "observed_at": 1800000000,
+          "freshness": "fresh"
+        },
+        {
+          "id": "weekly",
+          "scope": "all",
+          "minutes": 300,
+          "used_bp": 0,
+          "resets_at": 1800000600,
+          "observed_at": 1800000000,
+          "freshness": "fresh"
+        }
+      ],
+      "record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "failure_count": 0
+    },
+    {
+      "key": "key-b",
+      "runtime": "runtime-a",
+      "state": "exact",
+      "windows": [
+        {
+          "id": "session",
+          "scope": "all",
+          "minutes": 300,
+          "used_bp": 0,
+          "resets_at": 1800000600,
+          "observed_at": 1800000000,
+          "freshness": "fresh"
+        },
+        {
+          "id": "weekly",
+          "scope": "all",
+          "minutes": 300,
+          "used_bp": 0,
+          "resets_at": 1800000600,
+          "observed_at": 1800000000,
+          "freshness": "fresh"
+        }
+      ],
+      "record_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "failure_count": 0
+    }
+  ],
+  "inflight": [
+    {
+      "key": "key-a",
+      "runs": 0
+    },
+    {
+      "key": "key-b",
+      "runs": 1
+    }
+  ],
+  "candidates": [
+    {
+      "id": "a",
+      "runtime_binding_id": "binding-a",
+      "runtime": "runtime-a",
+      "model": "model-a",
+      "effort": "High",
+      "context_profile": {
+        "name": "default",
+        "lock_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "transport": "native",
+      "provider_id": "provider-a",
+      "tool_profile": "standard",
+      "execution_mode": "interactive",
+      "billing_class": "subscription",
+      "usage_key": "key-a"
+    },
+    {
+      "id": "b",
+      "runtime_binding_id": "binding-b",
+      "runtime": "runtime-a",
+      "model": "model-a",
+      "effort": "High",
+      "context_profile": {
+        "name": "default",
+        "lock_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "transport": "native",
+      "provider_id": "provider-a",
+      "tool_profile": "standard",
+      "execution_mode": "interactive",
+      "billing_class": "subscription",
+      "usage_key": "key-b"
+    }
+  ],
+  "source": {
+    "name": "fixture",
+    "version": "v1"
+  },
+  "config_order": [
+    "b",
+    "a"
+  ]
+}

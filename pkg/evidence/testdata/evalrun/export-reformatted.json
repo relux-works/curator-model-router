@@ -1,0 +1,225 @@
+{
+  "schema_version": "evalrun-v1",
+  "run_id": "synthetic-run",
+  "exported_at": "2026-10-02T00:00:00Z",
+  "mapping_ref": {
+    "name": "synthetic-map",
+    "version": "1"
+  },
+  "mapping_digest": "sha256:e2481ba15e7c3f14d78eaf9e23b9ee4ee033223d0b99b1b2e40fb3c09f4562cf",
+  "benchmark": {
+    "id": "internal-review-set",
+    "version": "1",
+    "publisher": "synthetic-fixture",
+    "dataset": "synthetic-revision-1",
+    "split": "holdout",
+    "protocol_digest": "sha256:bca8179bbc1bb35bca60ff2bbaa7bbda9d1334112576de9315ce7a1d07d922da",
+    "categories": [
+      {
+        "category": "review.code",
+        "note": "synthetic Go review only"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "false_findings",
+        "unit": "count",
+        "direction": "lower_better",
+        "description": "diagnostic false findings"
+      },
+      {
+        "name": "missed_defects",
+        "unit": "count",
+        "direction": "lower_better",
+        "description": "diagnostic missed defects"
+      },
+      {
+        "name": "review_f1",
+        "unit": "ratio",
+        "direction": "higher_better",
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "description": "unweighted F1; only quality input"
+      },
+      {
+        "name": "true_defects_found",
+        "unit": "count",
+        "direction": "higher_better",
+        "description": "diagnostic true defects"
+      }
+    ],
+    "grading_method": "human"
+  },
+  "results": [
+    {
+      "result_id": "synthetic-result",
+      "subject": {
+        "effort": "high",
+        "engine_profile": {
+          "engine_kind": "fixture",
+          "kv_context_tokens": 4096,
+          "name": "fixture-engine",
+          "prefill_chunk_tokens": 128,
+          "quantization": "full",
+          "weight_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "execution_profile": "worker",
+        "harness_version": "1.0",
+        "tool_profile": "standard",
+        "model_name": "Synthetic Model",
+        "runtime_name": "Synthetic Runtime"
+      },
+      "categories": [
+        "review.code"
+      ],
+      "facets": {
+        "languages": [
+          "go"
+        ],
+        "platforms": [
+          "macos"
+        ]
+      },
+      "metric": "false_findings",
+      "value": 2,
+      "sample_count": 10,
+      "grading_method": "human",
+      "observed_at": "2026-10-01T12:00:00Z",
+      "raw_artifact_ref": "artifact:synthetic-only",
+      "cost": {
+        "tokens_in": 0,
+        "tokens_out": 12,
+        "usd": 0,
+        "wall_s": 1
+      }
+    },
+    {
+      "result_id": "synthetic-result",
+      "subject": {
+        "effort": "high",
+        "engine_profile": {
+          "engine_kind": "fixture",
+          "kv_context_tokens": 4096,
+          "name": "fixture-engine",
+          "prefill_chunk_tokens": 128,
+          "quantization": "full",
+          "weight_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "execution_profile": "worker",
+        "harness_version": "1.0",
+        "tool_profile": "standard",
+        "model_name": "Synthetic Model",
+        "runtime_name": "Synthetic Runtime"
+      },
+      "categories": [
+        "review.code"
+      ],
+      "facets": {
+        "languages": [
+          "go"
+        ],
+        "platforms": [
+          "macos"
+        ]
+      },
+      "metric": "missed_defects",
+      "value": 2,
+      "sample_count": 10,
+      "grading_method": "human",
+      "observed_at": "2026-10-01T12:00:00Z",
+      "raw_artifact_ref": "artifact:synthetic-only",
+      "cost": {
+        "tokens_in": 0,
+        "tokens_out": 12,
+        "usd": 0,
+        "wall_s": 1
+      }
+    },
+    {
+      "result_id": "synthetic-result",
+      "subject": {
+        "effort": "high",
+        "engine_profile": {
+          "engine_kind": "fixture",
+          "kv_context_tokens": 4096,
+          "name": "fixture-engine",
+          "prefill_chunk_tokens": 128,
+          "quantization": "full",
+          "weight_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "execution_profile": "worker",
+        "harness_version": "1.0",
+        "tool_profile": "standard",
+        "model_name": "Synthetic Model",
+        "runtime_name": "Synthetic Runtime"
+      },
+      "categories": [
+        "review.code"
+      ],
+      "facets": {
+        "languages": [
+          "go"
+        ],
+        "platforms": [
+          "macos"
+        ]
+      },
+      "metric": "review_f1",
+      "value": 0.8,
+      "sample_count": 10,
+      "grading_method": "human",
+      "observed_at": "2026-10-01T12:00:00Z",
+      "raw_artifact_ref": "artifact:synthetic-only",
+      "cost": {
+        "tokens_in": 0,
+        "tokens_out": 12,
+        "usd": 0,
+        "wall_s": 1
+      }
+    },
+    {
+      "result_id": "synthetic-result",
+      "subject": {
+        "effort": "high",
+        "engine_profile": {
+          "engine_kind": "fixture",
+          "kv_context_tokens": 4096,
+          "name": "fixture-engine",
+          "prefill_chunk_tokens": 128,
+          "quantization": "full",
+          "weight_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "execution_profile": "worker",
+        "harness_version": "1.0",
+        "tool_profile": "standard",
+        "model_name": "Synthetic Model",
+        "runtime_name": "Synthetic Runtime"
+      },
+      "categories": [
+        "review.code"
+      ],
+      "facets": {
+        "languages": [
+          "go"
+        ],
+        "platforms": [
+          "macos"
+        ]
+      },
+      "metric": "true_defects_found",
+      "value": 8,
+      "sample_count": 10,
+      "grading_method": "human",
+      "observed_at": "2026-10-01T12:00:00Z",
+      "raw_artifact_ref": "artifact:synthetic-only",
+      "cost": {
+        "tokens_in": 0,
+        "tokens_out": 12,
+        "usd": 0,
+        "wall_s": 1
+      }
+    }
+  ]
+}

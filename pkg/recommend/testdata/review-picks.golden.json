@@ -1,0 +1,100 @@
+[
+  {
+    "difficulty": "trivial",
+    "mini": false,
+    "selected": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "index": "review"
+  },
+  {
+    "difficulty": "routine",
+    "mini": false,
+    "selected": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "index": "review"
+  },
+  {
+    "difficulty": "standard",
+    "mini": false,
+    "selected": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "index": "review"
+  },
+  {
+    "difficulty": "hard",
+    "mini": false,
+    "selected": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "index": "review"
+  },
+  {
+    "difficulty": "critical",
+    "mini": false,
+    "selected": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "index": "review"
+  },
+  {
+    "difficulty": "trivial",
+    "mini": true,
+    "selected": {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "index": "review"
+  },
+  {
+    "difficulty": "routine",
+    "mini": true,
+    "selected": {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "index": "review"
+  },
+  {
+    "difficulty": "standard",
+    "mini": true,
+    "selected": {
+      "runtime": "codex",
+      "model": "gpt-6-astra",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "index": "review"
+  },
+  {
+    "difficulty": "hard",
+    "mini": true,
+    "refusal": "no_qualified_candidate"
+  },
+  {
+    "difficulty": "critical",
+    "mini": true,
+    "refusal": "no_qualified_candidate"
+  }
+]

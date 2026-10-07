@@ -1,0 +1,50 @@
+{
+  "schema_version": "v1",
+  "task_envelope_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "role_context_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "candidate_snapshot_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "evaluation_snapshot_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "routing_policy_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "assessor_version": "v1",
+  "estimator_version": "v1",
+  "selector_version": "v1",
+  "selected_candidate": {
+    "id": "a",
+    "runtime_binding_id": "binding-a",
+    "runtime": "runtime-a",
+    "model": "model-a",
+    "effort": "High",
+    "context_profile": {
+      "name": "default",
+      "lock_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "transport": "native",
+    "provider_id": "provider-a",
+    "tool_profile": "standard",
+    "execution_mode": "interactive",
+    "billing_class": "subscription",
+    "usage_key": "key-a"
+  },
+  "alternatives": [
+    {
+      "candidate_id": "b",
+      "position": 1,
+      "reason_codes": [
+        "inflight_spread"
+      ],
+      "base_position": 0
+    }
+  ],
+  "reason_codes": [
+    "config_order_preserved",
+    "quota_on_pace"
+  ],
+  "evidence_refs": [
+    "obs:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  ],
+  "selection_origin": "router",
+  "applicability_scope": "attempt-1",
+  "prepared_at": 1800000000,
+  "expires_at": 1800000600,
+  "outcome": "selected"
+}

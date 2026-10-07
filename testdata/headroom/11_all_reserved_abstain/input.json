@@ -1,0 +1,146 @@
+{
+  "schema_version": "v1",
+  "envelope": {
+    "schema_version": "v1",
+    "description": "Frozen workload",
+    "substantive_revision": "revision-1",
+    "role": "developer",
+    "criteria": [],
+    "context": [],
+    "tools": []
+  },
+  "snapshot": {
+    "schema_version": "v1",
+    "as_of": 1800000000,
+    "scope_map": {
+      "version": "v1",
+      "entries": []
+    },
+    "usage_facts": [
+      {
+        "key": "key-a",
+        "runtime": "runtime-a",
+        "state": "exact",
+        "windows": [
+          {
+            "id": "session",
+            "scope": "all",
+            "minutes": 300,
+            "used_bp": 9000,
+            "resets_at": 1800001000,
+            "observed_at": 1800000000,
+            "freshness": "fresh"
+          }
+        ],
+        "record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "failure_count": 0
+      },
+      {
+        "key": "key-b",
+        "runtime": "runtime-a",
+        "state": "exact",
+        "windows": [
+          {
+            "id": "session",
+            "scope": "all",
+            "minutes": 300,
+            "used_bp": 9000,
+            "resets_at": 1800001000,
+            "observed_at": 1800000000,
+            "freshness": "fresh"
+          }
+        ],
+        "record_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "failure_count": 0
+      }
+    ],
+    "inflight": [
+      {
+        "key": "key-a",
+        "runs": 0
+      },
+      {
+        "key": "key-b",
+        "runs": 0
+      }
+    ],
+    "candidates": [
+      {
+        "id": "a",
+        "runtime_binding_id": "binding-a",
+        "runtime": "runtime-a",
+        "model": "model-a",
+        "effort": "high",
+        "context_profile": {
+          "name": "standard",
+          "lock_sha256": "unknown"
+        },
+        "transport": "native",
+        "provider_id": "provider-a",
+        "tool_profile": "standard",
+        "execution_mode": "batch",
+        "billing_class": "subscription",
+        "usage_key": "key-a"
+      },
+      {
+        "id": "b",
+        "runtime_binding_id": "binding-b",
+        "runtime": "runtime-a",
+        "model": "model-a",
+        "effort": "high",
+        "context_profile": {
+          "name": "standard",
+          "lock_sha256": "unknown"
+        },
+        "transport": "native",
+        "provider_id": "provider-a",
+        "tool_profile": "standard",
+        "execution_mode": "batch",
+        "billing_class": "subscription",
+        "usage_key": "key-b"
+      }
+    ],
+    "config_order": [
+      "b",
+      "a"
+    ],
+    "source": {
+      "name": "fixture"
+    }
+  },
+  "evaluation": {
+    "schema_version": "v1",
+    "evidence_snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "measurements": [],
+    "assessments": [],
+    "estimates": [],
+    "evaluator_versions": []
+  },
+  "policy": {
+    "schema_version": "v1",
+    "strategy": "config-order",
+    "mode": "select",
+    "free_field_mask": [],
+    "headroom": {
+      "enabled": true,
+      "equivalence": "same-pair-any-home",
+      "groups": [],
+      "protected_roles": [
+        "orchestrator",
+        "reviewer"
+      ],
+      "reserve_bp": 2000,
+      "band_width_bp": 1000,
+      "expiring_band": 3,
+      "conserve_band": -2,
+      "windows": "all",
+      "on_all_reserved": "abstain"
+    }
+  },
+  "versions": {
+    "assessor_version": "unknown",
+    "estimator_version": "unknown",
+    "selector_version": "router-core-v1",
+    "applicability_scope": "fixture"
+  }
+}

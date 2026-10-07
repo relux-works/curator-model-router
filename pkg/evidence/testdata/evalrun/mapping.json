@@ -1,0 +1,1 @@
+{"models":[{"external_name":"Synthetic Model","internal_id":"gpt-6.1-sol"}],"name":"synthetic-map","runtimes":[{"external_name":"Synthetic Runtime","internal_id":"codex"}],"schema_version":"evalrun-mapping-v1","version":"1"}

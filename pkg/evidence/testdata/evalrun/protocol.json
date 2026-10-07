@@ -1,0 +1,1 @@
+{"case_weighting":"unweighted","completion_rule":"full independently adjudicated case set","diagnostics_separate":true,"f1":"2*TP/(2*TP+FP+FN)","ground_truth":"planted and independently adjudicated; human ambiguity resolution","schema_version":"synthetic-review-protocol-v1","synthetic":true,"task_class":"synthetic Go review"}

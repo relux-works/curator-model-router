@@ -1,0 +1,842 @@
+[
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "trivial",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:06bcbfb49a85435a928ece59d4273d56c6ed1eaa13b24617c6701fa0bec0b046"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "trivial",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:b7b6a09577af8499e82b4ff8778fc8236ccae37232596ed0a13a2e60b64b5f63"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "trivial",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:88be901124bd24e1fe64ef2b0d36623215f6e43d60b10365bda4b79c441b95bf"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "routine",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:4306391cd42f4c000dcff3b6a7a3e176a2e2125c0e81ee4dba6ee36b835e8eeb"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "routine",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:6b1e104faab71d9c4d91e95cc8b6f86f712aad031f7412ec549a307ab2ea2cf2"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "routine",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:a0f9c769a2bd340d0675750328d98b9392a2d32d2cb1fb5dfea69466868e13f6"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "standard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:9828753732377e12ca0cd485a8ede937637bb16b1958f8c93f14f35094d09147"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "standard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:6f7c506c3cd6a8ec2491c3448e362691f0c2ff01d6db7463ed18b436791afff8"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "standard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:6362fb0800b955bc0f872f8ae16a069d9672669042ee5979d24992c0b626364f"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "hard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "tier": "A",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:95bb818f32268d71be8ddfb22dbc5bd6f28d29df31a890b176f9b21c5a4fbc78"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "hard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:d3fd277ca89a96527fe692cafe0049f2e4b6908b87570ffe18cb67588253f7b1"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "hard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:bd9c8489edebc27ef965fcf7fa8b9dbdf0d484c480be1ffcf4f2264e16fd971a"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "critical",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:2b26bb44020cde7b9ffafc82bbfb7c9abe7a4ff0d945da1180d16f4aa72d2b12"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "critical",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:d85fa451a949a3efbabc9e4abfe2d0d10df6549b630feb8bdd43309f53bcb0b1"
+  },
+  {
+    "role": "developer",
+    "task_class": "code.implement",
+    "difficulty": "critical",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:c4cabf841822b32eacd40fd1eccf99c9a53ca72dc9d5def4163b92896596801b"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "trivial",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "review",
+    "decision_id": "sha256:bdea22e7ce1febcfcb1d35941397b9d9a9a62d5190cd9ebad6a5cf60e8157598"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "trivial",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "review",
+    "decision_id": "sha256:4ee2c78797f476035e2d580e77c693a2df8ddb49511c735c2127a1d0653a6bce"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "trivial",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:027e45686e6de02f560ef8e75291dc1ec21baad6aefcd001ff8fc9149a472e48"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "routine",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "review",
+    "decision_id": "sha256:3a29f2c2abc6393a32d4b5e2f30c9542c066973d0fd6f4671fc687c77088e7d8"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "routine",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "review",
+    "decision_id": "sha256:4a26957a32973d377331ffc6a317f16efd45050e1d38185a465fca20cad1cf95"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "routine",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:71f766f37a677f7f5798cc6b6641603cd6cb0b3e9876a5c54cfe822e394a24d3"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "standard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "review",
+    "decision_id": "sha256:8f0fcb53c2a18569dd89d93026af258c7abfd3596a33a1c20a3eda64845e83d8"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "standard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "review",
+    "decision_id": "sha256:b2457075996684b69945adb7e507004ee80509a71db785ed01e57b2d6963a9a1"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "standard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:59c7872105a4db3bfe6a7193158b31464d0376b2499ec7be53ea76a8bc8c6ec7"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "hard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "tier": "A",
+    "quality_index": "review",
+    "decision_id": "sha256:1daa255e4e9305f22fdeb924df93d235ae0830d5366ae46ffba902da00f78f09"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "hard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:17cde40b8733cce24246dcb3a3fdba381dde68989bf7e1ad18c1a35c710250de"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "hard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:d3cd401a7b776c82a4550a564188a16a276aed4736a3937be2536d2c3a48f595"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "critical",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:b6a1f911419faf2881cc0a8720db2db0111f7864f5bc166276cace9d63594c1c"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "critical",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:da83bc9735e23ac08d2e7f3b7f394730700f179ac0f616c2588fb9d11eafa620"
+  },
+  {
+    "role": "reviewer",
+    "task_class": "review.code",
+    "difficulty": "critical",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "review",
+    "decision_id": "sha256:478cbdac2278151062fc278f0e3a7eb56e7549169cb27c68042e77e31fb44aeb"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "trivial",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:e1f56a0be51cce797e387074032d48e39436948d40dcf653f077e43b33911fdb"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "trivial",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:a8a70af1a969e13f56154096080a9acc0caec0aadafffd1f97c4031453444fec"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "trivial",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:71801fdfb25c1107aa688cec249f06776a97d5456d23c64202afd930233cee7f"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "routine",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:ef109c137b4f58856ba1ff2c4e806c85dfa3ce53ea6433339eb396dc6c63f83c"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "routine",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:47d4960a1d485408b552d630121892ad2ee4b123f23e5d58348439e965e016b0"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "routine",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:7a5048f5429f30abb84d413b0d6f69eab2c9775ffe1e2be7fb488a005adc8e68"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "standard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:c99972e19e52b75b6068b5f9755f02017568c351ee45939249c64d3d4c3b1efa"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "standard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:3ec2e6580c521b452944152b4a8687f8ae0abc161727b6fab123a685dcc2111d"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "standard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:68de1b732868b17701a0362f824ec7c1ddb6e1e5ae7c5435dc2cdec1d56926c7"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "hard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "tier": "A",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:2323e8871ee1e3461cda4d96426a5ac0958f2788c91e6ea733ec810e1bf3b029"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "hard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:c7adf40d0c9fa848b2410441c66be8e9b361e83d9c54e7ffa7906a49dbff6e9e"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "hard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:b689ba8e0f1b5c8f037b0026b26c6b01ae9e1544e44133c21501fd9432f15257"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "critical",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:af351a130b1a038c4e57d422cf2c1ee4d993b65ec7be32e3e1be23c33d90403f"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "critical",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:77fc314ae206b41ea951dc2dd82c910eab7b24e9166b202ba4eb7c9c383a30d4"
+  },
+  {
+    "role": "researcher",
+    "task_class": "research",
+    "difficulty": "critical",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:2deb1a900bbd0a37b91ee51c1052c3e40c28647ed3e04c195bbd32e22d853612"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "trivial",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:6800edc5e122c07d80dea9765625db5cbc70c4f4917e835809e76133fcbd6a0a"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "trivial",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6-luna",
+      "effort": "medium"
+    },
+    "tier": "C",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:24e92e6d46a4bc6c69dbc3194d517f75c3262671e24b5c5b20bad1ed63c28e67"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "trivial",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:500e07383a7361331151082890ebe4a61a192983e36537edd3ec01593f631fbf"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "routine",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:d49b8c906f6f14635a07f2d6221278881bd896057c97cd966f514a2138c4bce1"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "routine",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:da555a585fbcfbfe192acbca8a7c695446b847a69d6b9432f191b74db5479775"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "routine",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:f64845605d8c86524044c5aa48885b0651f50114b6f1c8f1c1c35440a0988401"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "standard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:a7992f6184e09a7f59694b1e0246e7563b891b98a29bf907f0847a4538bf734c"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "standard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    },
+    "tier": "B",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:d5133b1a6340ab7271a5a5e9519821475c666193cab8a629d5afb3b2cffb76ec"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "standard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:78bfb56f176863efb62fdef13a03e04992a492542257f52f5f90f607aec6d19e"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "hard",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "tier": "A",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:8f2e52585ce5a1b6d30e6dcff888f38394f805d87dfd920f491ed4ed1d79344b"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "hard",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:a9de13dc18bc7c4453e789177e70cbdf8c80ff2e9352d2bc73426def37e55392"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "hard",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:ba3031c1ac72d38e2cc4b5630e053e5d562ad7206fc22515a79999e344f95d78"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "critical",
+    "budget": "economy",
+    "candidate": {
+      "runtime": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:f4c4b5d1dddf83548a914b35da512b8081467bce2ffe6c4fef8c2ac826443d83"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "critical",
+    "budget": "balanced",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:8dae231a2936970bdad6b97d74c1a400dc1d375e0dade62addce46994449e1a3"
+  },
+  {
+    "role": "orchestrator",
+    "task_class": "orchestration",
+    "difficulty": "critical",
+    "budget": "burn",
+    "candidate": {
+      "runtime": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "max"
+    },
+    "tier": "S",
+    "quality_index": "bughunt_fallback",
+    "decision_id": "sha256:98312432cc533369d74b22ae8b69f672e50c6f057255fd35075b58b3c7e7403a"
+  }
+]

@@ -1,0 +1,1 @@
+{"imports":["sha256:5add8335136394fc4586e34085fc2d67af4864095a2c00ea09f006cac64b4c14"],"kind":"evidence-snapshot","registry_digest":"sha256:11b78e3ccd18b5945e3e402c05155aa7abe23ea6326167757a8776330b1aa239","registry_ref":{"name":"fixture-registry","version":"1"},"schema_version":"evidence-v1","taxonomy_version":"v1"}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "estimator-partition-v1",
+  "estimator_version": "suitability-bp-v1",
+  "groups": [
+    {
+      "id": "singleton:a",
+      "candidate_ids": [
+        "a"
+      ]
+    },
+    {
+      "id": "singleton:b",
+      "candidate_ids": [
+        "b"
+      ]
+    }
+  ]
+}
