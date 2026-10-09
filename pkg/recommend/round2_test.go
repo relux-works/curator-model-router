@@ -43,7 +43,7 @@ func TestEmbeddedCatalogAcceptance(t *testing.T) {
 		r.Task.Difficulty = "trivial"
 		got := run(t, r)
 		x := chosenExplanation(t, got)
-		if x.Candidate != (Candidate{"codex", "gpt-6-luna", "medium"}) || x.Cost.USDPerTask == nil || *x.Cost.USDPerTask >= .10 {
+		if x.Candidate != (Candidate{Runtime: "codex", Model: "gpt-6-luna", Effort: "medium"}) || x.Cost.USDPerTask == nil || *x.Cost.USDPerTask >= .10 {
 			t.Fatal(x)
 		}
 	})
@@ -59,7 +59,7 @@ func TestEmbeddedCatalogAcceptance(t *testing.T) {
 		r.Task.Sensitivity = "delicate"
 		got := run(t, r)
 		x := chosenExplanation(t, got)
-		if x.Tier != TierS || x.Candidate != (Candidate{"claude", "claude-sonnet-5-5", "max"}) {
+		if x.Tier != TierS || x.Candidate != (Candidate{Runtime: "claude", Model: "claude-sonnet-5-5", Effort: "max"}) {
 			t.Fatal(x)
 		}
 	})
@@ -79,7 +79,7 @@ func TestEmbeddedCatalogAcceptance(t *testing.T) {
 	t.Run("exhausted_moves_to_equivalent", func(t *testing.T) {
 		r := realRequest(t)
 		// These measured A rows have costs within the default 25% band, so usage can rotate.
-		r.Candidates = []Candidate{{"claude", "claude-sonnet-5-5", "high"}, {"codex", "gpt-6-astra", "high"}}
+		r.Candidates = []Candidate{{Runtime: "claude", Model: "claude-sonnet-5-5", Effort: "high"}, {Runtime: "codex", Model: "gpt-6-astra", Effort: "high"}}
 		r.Usage.UsageKeys = map[string]string{}
 		for i, c := range r.Candidates {
 			key := c.Key()
@@ -140,7 +140,7 @@ func TestEmbeddedCatalogAcceptance(t *testing.T) {
 	t.Run("locks", func(t *testing.T) {
 		r := realRequest(t)
 		r.Locks = Locks{Agent: "codex", Model: "gpt-6.1-sol", Effort: "high"}
-		if chosenExplanation(t, run(t, r)).Candidate != (Candidate{"codex", "gpt-6.1-sol", "high"}) {
+		if chosenExplanation(t, run(t, r)).Candidate != (Candidate{Runtime: "codex", Model: "gpt-6.1-sol", Effort: "high"}) {
 			t.Fatal("locks ignored")
 		}
 	})
@@ -404,6 +404,9 @@ func TestQuotaStopKnownWindows(t *testing.T) {
 				r.Catalog.Rows[i].Billing = billing
 			}
 		}
+		if billing == routing.BillingLocal {
+			r.Locks = Locks{Agent: "rt-a", Model: "alpha", Effort: "high"}
+		}
 		r.Policy.Rules = []Rule{{ID: "stop", Source: "operator ruling: quota stop (example)", QuotaStopBP: ptr(int64(2500))}}
 		selected(t, run(t, r), "alpha")
 	}
@@ -562,7 +565,7 @@ func TestExampleHostReviewerAndStoryRulings(t *testing.T) {
 		{ID: "review", Source: "operator ruling: cross-provider review (example); exception operator ruling: host reviewer pin (example)", When: RuleWhen{Role: "reviewer"}, CrossProviderReview: &CrossProviderReview{AllowSameProviderFallback: true, ExceptHosts: []string{"build-host"}}},
 	}
 	got := run(t, r)
-	if chosenExplanation(t, got).Candidate != (Candidate{"codex", "gpt-6-astra", "medium"}) || len(got.AppliedRules) != 2 {
+	if chosenExplanation(t, got).Candidate != (Candidate{Runtime: "codex", Model: "gpt-6-astra", Effort: "medium"}) || len(got.AppliedRules) != 2 {
 		t.Fatal(got.RenderHuman())
 	}
 	r.Task.Difficulty = "hard"
@@ -573,7 +576,7 @@ func TestExampleHostReviewerAndStoryRulings(t *testing.T) {
 	r = realRequest(t)
 	r.Story = "story-123"
 	r.Policy.Rules = []Rule{{ID: "story", Source: "project-example/story-123", When: RuleWhen{Story: "story-123"}, Require: &RuleSelector{Runtime: "codex", Model: "gpt-6.1-sol"}, Effort: &RuleEffort{Pin: "high"}}}
-	if chosenExplanation(t, run(t, r)).Candidate != (Candidate{"codex", "gpt-6.1-sol", "high"}) {
+	if chosenExplanation(t, run(t, r)).Candidate != (Candidate{Runtime: "codex", Model: "gpt-6.1-sol", Effort: "high"}) {
 		t.Fatal("story ruling ignored")
 	}
 }

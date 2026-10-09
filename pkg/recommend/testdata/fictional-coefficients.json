@@ -1,0 +1,32 @@
+{
+  "schema_version": "quantization-coefficients-v1",
+  "records": [
+    {
+      "id": "fictional-transfer",
+      "weights_id": "gguf-sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "base_record_id": "fictional-base",
+      "quantization": "FICTIONAL-Q4",
+      "axis": "coding",
+      "scope": "code.implement",
+      "source_reasoning": {
+        "thinking": "on",
+        "effort": "high"
+      },
+      "target_reasoning": {
+        "thinking": "on",
+        "effort": "high"
+      },
+      "method": "published-transfer",
+      "k": 0.95,
+      "coefficient_interval": [
+        0.8,
+        1
+      ],
+      "added_stderr": 3,
+      "source": "FICTIONAL coefficient; not llama.cpp measurements",
+      "rationale": "FICTIONAL wide bounds; added uncertainty is declared independently, no automatic interval-to-stderr conversion",
+      "as_of": "2026-10-09",
+      "expires_at": "2030-01-01T00:00:00Z"
+    }
+  ]
+}

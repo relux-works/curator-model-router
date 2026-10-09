@@ -56,6 +56,14 @@ Codex among the best qualified candidates.
 
 **Real routing data needs an operator overlay.** The embedded catalog is a publishable baseline only: Bug Hunt Bench measurements (MIT) and vendor list prices. Index data from other providers is supplied by each operator in a local overlay file and must never be committed to this repository; a test rejects index values in the embedded catalog.
 
-The public embedded catalog contains pinned Bug Hunt measurements with [attribution](NOTICE) and [field provenance/default picks](catalog/NOTES.md). Overall and coding indices are optional operator inputs. Supply `--catalog-overlay FILE` or policy `catalog_overlay` for an explicit [overlay-v1](spec/recommend.md#11-explicit-operator-overlays) file. Every scalar records its own provenance, and the decision binds the canonical overlay digest for replay. Primary quality ranks above fallback quality; values from different scales are never compared. Unknown quality is never selected.
+The public embedded catalog contains pinned Bug Hunt measurements with [attribution](NOTICE) and [field provenance/default picks](catalog/NOTES.md). Overall and coding indices are optional operator inputs. Supply `--catalog-overlay FILE` or policy `catalog_overlay` for an explicit [overlay-v1](spec/recommend.md#11-explicit-operator-overlays) file. Every scalar records its own provenance, and the decision binds the canonical overlay digest for replay. Primary quality ranks above fallback quality; values from different scales are never compared. Unknown quality is excluded from automatic selection. Fully explicit local tuple locks may return an advisory unrated choice with an explanation.
+
+
+Exact local GGUF ratings use independently pinned `weights_id`, thinking context,
+and an operator `local-capability-v1` document. Applicable exact measurements
+precede base-score transfers with explicit uncertainty. Import keyless public
+exports using `cmr local import-base --input FILE`; validate operator coefficients
+using `cmr local coefficients --input FILE`. See the [local capability guide](docs/local-capability.md).
+The library ships no production coefficients or new third-party rating numbers.
 
 Module license: [Apache-2.0](LICENSE), copyright Relux Works. Benchmark data retains its upstream terms described in NOTICE.

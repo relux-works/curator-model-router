@@ -67,7 +67,7 @@ func (o CatalogOverlay) Validate() error {
 					return refuse(InvalidOverlay, "empty patch")
 				}
 				// Reuse catalog quality validation, including measured-review uncertainty.
-				c := Catalog{SchemaVersion: CatalogVersion, Rows: []CatalogRow{{Candidate: Candidate{rt, model, effort}, Family: "overlay", Billing: "subscription", Quality: row.Quality, Cost: Cost{Kind: "estimate", Source: "overlay validation", AsOf: "2026-10-07"}}}}
+				c := Catalog{SchemaVersion: CatalogVersion, Rows: []CatalogRow{{Candidate: Candidate{Runtime: rt, Model: model, Effort: effort}, Family: "overlay", Billing: "subscription", Quality: row.Quality, Cost: Cost{Kind: "estimate", Source: "overlay validation", AsOf: "2026-10-07"}}}}
 				if err := c.Validate(); err != nil {
 					return refuse(InvalidOverlay, err.Error())
 				}
@@ -99,6 +99,9 @@ func (o CatalogOverlay) Digest() (string, error) {
 // Each supplied scalar replaces its base field and its own provenance; unknown
 // configurations are refused, even if not admitted for the current task.
 func MergeCatalog(base Catalog, overlay CatalogOverlay) (Catalog, error) {
+	return mergeCatalog(base, overlay, false)
+}
+func mergeCatalog(base Catalog, overlay CatalogOverlay, legacyReplay bool) (Catalog, error) {
 	if err := base.Validate(); err != nil {
 		return Catalog{}, err
 	}
@@ -117,7 +120,7 @@ func MergeCatalog(base Catalog, overlay CatalogOverlay) (Catalog, error) {
 	for rt, models := range overlay.Rows {
 		for model, efforts := range models {
 			for effort, row := range efforts {
-				patches[(Candidate{rt, model, effort}).Key()] = row
+				patches[(Candidate{Runtime: rt, Model: model, Effort: effort}).Key()] = row
 			}
 		}
 	}
@@ -133,6 +136,13 @@ func MergeCatalog(base Catalog, overlay CatalogOverlay) (Catalog, error) {
 	for _, key := range keys {
 		if !known[key] {
 			return Catalog{}, refuse(InvalidOverlay, "unknown configuration "+key)
+		}
+	}
+	for _, r := range out.Rows {
+		if r.Billing == "local" && !legacyReplay {
+			if _, ok := patches[r.Key()]; ok {
+				return Catalog{}, refuse(InvalidOverlay, "overlay-v1 cannot patch local quality or cost; use local-capability-v1")
+			}
 		}
 	}
 	for i := range out.Rows {

@@ -299,3 +299,147 @@ A native `task-board spawn --route` flag (W5) can replace the wrapper later with
   8. locked flags are respected;
   9. an empty qualified set refuses.
 - `cmr spawn` with a fake `task-board` binary on `PATH` passes the exact args.
+
+## 9. Exact local GGUF capability
+
+New local decisions use `recommend-request-v2`, `recommend-decision-v2` and
+`recommend-v6`. Policy remains `recommend-policy-v1`. Hosted catalog data remains
+`catalog-v1`; optional identity fields on a row are permitted only for `billing=local`.
+Legacy hosted requests retain their omitted request version and selector bytes.
+Unknown or mixed request/decision/selector versions refuse. New decisions containing
+unguarded local catalog quality are upgraded to v2, ignore that quality, and exclude
+it from automatic selection. Historical v1 replay uses the historical selector,
+including old local catalog/overlay behavior, solely to verify recorded decisions.
+It is never an entry point for creating a new launch recommendation.
+
+**Delivery choice:** local evidence lives in a separate closed
+`local-capability-v1` operator document. This keeps `LoadOverlay`'s overlay-v1
+contract unchanged, avoids retrofitting unguarded quality/cost patches with identity,
+and permits measurement-only materializations independent of embedded aliases.
+`MergeCatalog` rejects every overlay-v1 patch to local rows, including cost-only
+patches. Historical replay can retain historical patches. Overlays cannot create
+admission. An exact weights document cannot create admission either.
+
+A candidate may supply `weights_id`, `expected_weights_id` and
+`reasoning={thinking,effort}`. Admission identity stays `(runtime,model,effort)`;
+duplicate tuples refuse even when their weights differ. IDs match exactly
+`^gguf-sha256:[0-9a-f]{64}$`, without trimming or case folding. This identifies the
+complete bytes of one GGUF; the router validates syntax and consumes assertions,
+while the engine owns hashing, GGUF validation and load binding. `thinking` is
+`on|off|unknown`, and reasoning effort matches `^[a-z][a-z0-9_-]{0,31}$`.
+Reasoning effort is independent of tuple effort. This slice rates thinking only;
+unknown thinking or effort never matches. Both reasoning strings must equal the
+benchmark strings; no inferred mapping is supported.
+
+Every ranked local candidate requires its independently supplied pin to equal W.
+Missing pins, weights or reasoning, mismatches, absent materializations, expired
+coefficients and absent applicable quality produce tier U (UNRATED). A supplied
+catalog W/reasoning guard must also match the admitted candidate. Hosted candidates
+cannot carry local identities. Local inline catalog scores never back a v6 rating.
+
+A complete exact lock (`agent`, `model`, and `effort`, including literal `none`)
+may select an admitted unrated local tuple for a single pipeline. The explanation
+retains tier U, the mismatch/missing-data reason, `explicit_lock_unrated`, and
+`local_execution_requires_verified_pin_and_context`. This exception never enters
+automatic ranking or fan-out and never overrides constraints, admission, or hard
+policy rules. Selection is advisory: a launch gate must still require a verified
+pin, opened-file observation and actual reasoning context. A router decision does
+not prove that a local artifact was loaded.
+
+The local document has exactly these top-level members:
+
+| Member | Contract |
+| --- | --- |
+| `schema_version` | Literal `local-capability-v1` |
+| `bases` | Array of base-model records; may be empty for measurement-only data |
+| `materializations` | Array keyed uniquely by exact W |
+| `coefficients` | Embedded `quantization-coefficients-v1` table |
+| `source_priority` | Ordered unique evidence IDs, frozen for tie breaking |
+
+Base records contain `id`, canonical `base_id=hf://models/<publisher>/<checkpoint>`,
+`revision` (explicit `unknown` when absent upstream), reasoning, scope, quality
+and per-axis provenance. The producer freezes canonical HF API spelling in the
+export; the offline importer cannot independently verify upstream metadata.
+Conflicting case variants refuse. Quality/provenance maps have identical axes,
+each from `overall|coding|review`. Each score requires value in 0–100, nonnegative
+stderr in quality points, measured/estimate kind, source and valid YYYY-MM-DD
+as_of; estimates forbid n. Each provenance record requires provider ID/version,
+terms/attribution, original source model ID, payload byte digest, UTC retrieval time,
+benchmark/version/split/metric/unit/direction, original score and explicit
+calibration to the router's scale. Missing calibration or uncertainty refuses.
+No benchmark index is silently interpreted as coding or review quality.
+
+Materializations contain `weights_id`, optional `base_record_id`, `format=gguf`,
+quantization annotation, lineage provenance and a required measurements array.
+Omitting the base link permits measurement-only targets. Each measurement contains
+unique evidence `id`, axis, reasoning, scope and a complete measured score. Review
+requires measured kind, real positive n and stderr. Hosted cost or latency is never
+transferred. Scope is an exact normalized task class or `*`; operators must review
+recipe/template, budgets and software applicability before claiming that scope.
+
+Each coefficient requires unique immutable `id`, exact W, matching base-record ID
+and quantization annotation, overall/coding axis, scope, source/target reasoning,
+method (`paired-measurement|published-transfer|operator-estimate`), k,
+`coefficient_interval=[low,high]`, `added_stderr`, source, rationale, as_of and
+expires_at. Require `0 <= low <= k <= high <= 1`. Source/target reasoning must match
+the base reasoning, and transfer is identity reasoning only (`r=1`, `uR=0`).
+Reasoning mappings are deferred: incompatible contexts remain unrated.
+Rationale must document interval/uncertainty calibration; interval endpoints do
+not automatically become statistical errors. `expires_at` must be a valid
+`YYYY-MM-DDTHH:MM:SSZ` date/time, without offsets, fractions or leap seconds.
+At or after the frozen `usage.as_of` expiry, transfer is inapplicable. A bundle
+requires positive frozen decision time; library code never reads a clock.
+
+Transfer input numbers are nonnegative JSON decimal tokens with at most six
+fractional digits, no sign or exponent, representable as signed 64-bit millionths.
+Derived multiplication uses integer-scaled arbitrary precision arithmetic:
+
+```text
+value           = floor6(B * k)
+stderr          = sB + uK
+selection_value = max(0, value - 2*stderr)
+```
+
+Uncertainty is never discounted, and addition cannot overflow silently. With this
+identity-only slice there is no fractional addition beyond six places, so summation
+is already the required ceil6. Transferred quality uses selection_value for tier,
+quality order and Pareto comparisons, while explanations retain value/stderr,
+base value/stderr, k, added uncertainty and evidence ID. Measured/hosted selection
+semantics are unchanged. Estimate stderr is declared effective uncertainty, with
+no invented sample count or confidence interpretation. The FICTIONAL arithmetic
+vector 80/2 × 0.95 with added uncertainty 3 yields 76/5/66.
+
+Per axis and matching applicability: exact-W measurement wins even when lower,
+then operator-estimate transfer, then published/paired transfer, then UNRATED.
+Within a class, ordered `source_priority` evidence IDs decide; unlisted IDs share
+the lowest priority and unresolved applicable ties refuse. No maximum-score or
+most-recent-record rule is used. Transferred review always refuses.
+
+Requests retain `local_capability={id,json}`, where json is the exact original
+UTF-8 document as a JSON string and id is `sha256:<64 lowercase hex>` of those
+bytes. Whitespace/newline/key-order changes change the ID. Bytes are verified
+before strict parsing and retained in decision inputs; reserialization cannot
+substitute for them. Candidate W, pin, reasoning, expiry evaluation time,
+coefficients, source priority and resolved explanation all enter the decision ID.
+Replay performs no filesystem, network, clock or provider queries. Unknown keys
+(including key/credential fields), case variants, nulls, duplicate keys, malformed
+number tokens, trailing documents and inconsistent record links refuse the whole
+document. Public library/catalog code contains no production coefficient table
+or newly sourced third-party scores.
+
+`BaseScoreProvider` and `BaseProviderRegistry` expose explicit provider ID,
+version, terms note and needs-key status. Duplicate/unknown provider IDs refuse.
+`public-json` version 1 is keyless and imports a caller-supplied
+`public-base-export-v1` file containing explicitly calibrated base records.
+It stamps provider identity and the exact input payload digest, sorts records,
+validates provenance, and emits `base-model-records-v1`. Source-specific rights
+remain explicit operator input. Keyed providers may be added through the interface;
+there is no key field in records or decisions. All imports are offline.
+
+CLI: `cmr local providers`, `cmr local import-base --input FILE [--provider public-json]`,
+`cmr local coefficients --input FILE`, and `cmr local decide --input FILE` write
+JSON to stdout and read only explicit inputs. The final command consumes a strict
+v2 request and emits a replayable decision without admission discovery, cache
+reads or launch. `cmr recommend --local-capability FILE` freezes the operator
+bundle alongside normal explicit admission. See [operator instructions](../docs/local-capability.md)
+and `pkg/recommend/testdata/fictional-*.json` for clearly labelled synthetic shapes.

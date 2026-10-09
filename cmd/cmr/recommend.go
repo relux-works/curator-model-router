@@ -25,12 +25,12 @@ func (s *repeatedStrings) String() string     { return strings.Join(*s, ",") }
 func (s *repeatedStrings) Set(v string) error { *s = append(*s, v); return nil }
 
 type recommendOptions struct {
-	admission                                                                              *recommend.AdmissionContext
-	loadedPolicy                                                                           *recommend.Policy
-	role, taskClass, difficulty, language, platform, agent, model, effort                  string
-	catalog, catalogOverlay, policy, candidates, host, story, producerFamily, mode, budget string
-	delicate, fanout, refresh, json                                                        bool
-	exclude                                                                                repeatedStrings
+	admission                                                                                               *recommend.AdmissionContext
+	loadedPolicy                                                                                            *recommend.Policy
+	role, taskClass, difficulty, language, platform, agent, model, effort                                   string
+	catalog, catalogOverlay, policy, candidates, host, story, producerFamily, mode, budget, localCapability string
+	delicate, fanout, refresh, json                                                                         bool
+	exclude                                                                                                 repeatedStrings
 }
 
 func recommendFlagSet(name string, spawn bool, o *recommendOptions) *flag.FlagSet {
@@ -42,7 +42,7 @@ func recommendFlagSet(name string, spawn bool, o *recommendOptions) *flag.FlagSe
 	}{
 		{"role", &o.role}, {"task-class", &o.taskClass}, {"difficulty", &o.difficulty}, {"language", &o.language},
 		{"agent", &o.agent}, {"model", &o.model}, {"reasoning-effort", &o.effort},
-		{"catalog", &o.catalog}, {"catalog-overlay", &o.catalogOverlay}, {"policy", &o.policy}, {"candidates", &o.candidates},
+		{"local-capability", &o.localCapability}, {"catalog", &o.catalog}, {"catalog-overlay", &o.catalogOverlay}, {"policy", &o.policy}, {"candidates", &o.candidates},
 		{"budget", &o.budget}, {"platform", &o.platform}, {"host", &o.host}, {"story", &o.story}, {"producer-family", &o.producerFamily},
 	} {
 		f.StringVar(x.target, x.name, "", "")
@@ -148,9 +148,34 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 		}
 		o.host = strings.SplitN(host, ".", 2)[0]
 	}
+	var localBundle *recommend.LocalCapabilityBundle
+	requestVersion := ""
+	if o.localCapability != "" {
+		raw, err := os.ReadFile(o.localCapability)
+		if err != nil {
+			return recommend.DecisionRecord{}, &recommend.Refusal{Code: recommend.InvalidLocalCapability, Message: "cannot read local capability document"}
+		}
+		bundle, err := recommend.FreezeLocalCapability(raw)
+		if err != nil {
+			return recommend.DecisionRecord{}, err
+		}
+		localBundle = &bundle
+		requestVersion = recommend.LocalRequestVersion
+	}
+	for _, row := range catalog.Rows {
+		if row.WeightsID != "" || row.ExpectedWeightsID != "" || row.Reasoning != nil {
+			requestVersion = recommend.LocalRequestVersion
+		}
+	}
 	candidates, source, err := cmrio.Discover(o.candidates, o.role, o.agent, catalog, o.admission)
 	if err != nil {
 		return recommend.DecisionRecord{}, err
+	}
+
+	for _, c := range candidates {
+		if c.WeightsID != "" || c.ExpectedWeightsID != "" || c.Reasoning != nil {
+			requestVersion = recommend.LocalRequestVersion
+		}
 	}
 	root := cmrio.StateRoot()
 	env := os.Environ()
@@ -178,7 +203,7 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 	if err != nil {
 		return recommend.DecisionRecord{}, err
 	}
-	record, err := recommend.BuildDecision(recommend.Request{Host: o.host, Story: o.story, ProducerFamily: o.producerFamily, Exclude: o.exclude,
+	record, err := recommend.BuildDecision(recommend.Request{SchemaVersion: requestVersion, LocalCapability: localBundle, Host: o.host, Story: o.story, ProducerFamily: o.producerFamily, Exclude: o.exclude,
 		Admission: o.admission, Catalog: catalog, CatalogOverlay: overlay, Policy: policy, Task: task, Candidates: candidates, AdmissionSource: source,
 		Locks: recommend.Locks{Agent: o.agent, Model: o.model, Effort: o.effort}, Usage: quota.Project(records, catalog, asOf)})
 	if err != nil {

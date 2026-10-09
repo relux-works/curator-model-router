@@ -89,7 +89,8 @@ func quota(r *Request, model string, used, left, runs int64, freshness routing.F
 	}
 }
 
-func TestGoldenScenarios(t *testing.T) {
+// These vectors retain the historical selector. New local contracts have separate boundary/replay tests.
+func TestHistoricalGoldenScenarios(t *testing.T) {
 	var scenarios []struct {
 		Name         string   `json:"name"`
 		Difficulty   string   `json:"difficulty"`
@@ -130,7 +131,14 @@ func TestGoldenScenarios(t *testing.T) {
 				quota(&r, "alpha", 10000, 9000, 0, routing.Fresh)
 				quota(&r, "delta", 2000, 1800, 0, routing.Fresh)
 			}
-			got := run(t, r)
+			record, err := buildDecision(r, true)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := Replay(record); err != nil {
+				t.Fatal(err)
+			}
+			got := record.Recommendation
 			if scenario.Refusal != "" {
 				if got.Refusal == nil || got.Refusal.Code != scenario.Refusal || got.Selected != nil || len(got.FanOut) != 0 {
 					t.Fatalf("want refusal: %+v", got)
@@ -289,7 +297,7 @@ func TestSelectionRules(t *testing.T) {
 		{"delicate_b_refuses", func(r *Request) { restrict(r, "base"); r.Task.Sensitivity = "delicate" }, "", true},
 		{"unknown_does_not_displace_known", func(r *Request) { restrict(r, "unknown", "base") }, "base", false},
 		{"unknown_cannot_prove_floor", func(r *Request) { restrict(r, "unknown") }, "", true},
-		{"local_when_subscription_below_floor", func(r *Request) { restrict(r, "mini", "local") }, "local", false},
+		{"unguarded_local_cannot_prove_floor", func(r *Request) { restrict(r, "mini", "local") }, "", true},
 		{"metered_opt_in_last_resort", func(r *Request) { restrict(r, "meter"); r.Policy.AllowMetered = true }, "meter", false},
 		{"subscription_precedes_local_and_metered", func(r *Request) { restrict(r, "alpha", "local", "meter"); r.Policy.AllowMetered = true }, "alpha", false},
 		{"empty_admission", func(r *Request) { r.Candidates = nil }, "", true},

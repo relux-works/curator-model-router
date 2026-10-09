@@ -107,6 +107,16 @@ Suggested citation from the README:
 
 Nine rows have no exact mapped measurement: Muse contributor binding is unverified, hosted Qwen cannot establish local-engine quality, and the remaining configurations have no applicable live runs. No quality is inferred for these rows.
 
+## Exact local weights
+
+The embedded local row remains unrated. Exact GGUF capability, quantization
+coefficients and independently pinned candidate identity are operator input via
+`local-capability-v1`; see [the operator guide](../docs/local-capability.md).
+No new third-party scores or production coefficients are embedded. The
+`pkg/recommend/testdata/fictional-*` examples are synthetic, with no real-model
+rating or artifact claim. Unguarded local overlay-v1 patches cannot supply
+quality or cost in new decisions.
+
 ## Default picks without an overlay
 
 The table below explicitly admits all embedded rows, uses built-in policy with no standing rules, locks, usage facts or producer family, and normal sensitivity with a single pipeline. Roles map to developer/code.implement, reviewer/review.code, researcher/research and orchestrator/orchestration. These examples do not assert live availability. Each cell includes configuration and tier.

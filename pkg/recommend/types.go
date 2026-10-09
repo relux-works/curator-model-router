@@ -37,10 +37,19 @@ type Refusal struct {
 func (e *Refusal) Error() string        { return e.Code + ": " + e.Message }
 func refuse(code, message string) error { return &Refusal{code, message} }
 
+// ReasoningContext is actual benchmark/target reasoning, independent of admission effort.
+type ReasoningContext struct {
+	Thinking string `json:"thinking" toml:"thinking"`
+	Effort   string `json:"effort" toml:"effort"`
+}
+
 type Candidate struct {
-	Runtime string `json:"runtime" toml:"runtime"`
-	Model   string `json:"model" toml:"model"`
-	Effort  string `json:"effort" toml:"effort"`
+	WeightsID         string            `json:"weights_id,omitempty" toml:"weights_id"`
+	ExpectedWeightsID string            `json:"expected_weights_id,omitempty" toml:"expected_weights_id"`
+	Reasoning         *ReasoningContext `json:"reasoning,omitempty" toml:"reasoning"`
+	Runtime           string            `json:"runtime" toml:"runtime"`
+	Model             string            `json:"model" toml:"model"`
+	Effort            string            `json:"effort" toml:"effort"`
 }
 
 // Key is an unambiguous stable configuration identity, not a managed-home id.
@@ -168,12 +177,14 @@ type AdmissionContext struct {
 }
 
 type Request struct {
-	CatalogOverlay *CatalogOverlay   `json:"catalog_overlay,omitempty" toml:"catalog_overlay"`
-	OverlayDigest  string            `json:"overlay_digest,omitempty" toml:"overlay_digest"`
-	Admission      *AdmissionContext `json:"admission,omitempty" toml:"admission"`
-	Host           string            `json:"host,omitempty" toml:"host"`
-	Story          string            `json:"story,omitempty" toml:"story"`
-	ProducerFamily string            `json:"producer_family,omitempty" toml:"producer_family"`
+	SchemaVersion   string                 `json:"schema_version,omitempty" toml:"schema_version"`
+	LocalCapability *LocalCapabilityBundle `json:"local_capability,omitempty" toml:"local_capability"`
+	CatalogOverlay  *CatalogOverlay        `json:"catalog_overlay,omitempty" toml:"catalog_overlay"`
+	OverlayDigest   string                 `json:"overlay_digest,omitempty" toml:"overlay_digest"`
+	Admission       *AdmissionContext      `json:"admission,omitempty" toml:"admission"`
+	Host            string                 `json:"host,omitempty" toml:"host"`
+	Story           string                 `json:"story,omitempty" toml:"story"`
+	ProducerFamily  string                 `json:"producer_family,omitempty" toml:"producer_family"`
 	// Exclude contains exact runtime/model pairs supplied by --exclude.
 	Exclude    []string      `json:"exclude,omitempty" toml:"exclude"`
 	Catalog    Catalog       `json:"catalog" toml:"catalog"`
@@ -187,6 +198,7 @@ type Request struct {
 	AdmissionSource string `json:"admission_source" toml:"admission_source"`
 }
 type RankedCandidate struct {
+	LocalRating  *LocalRating                  `json:"local_rating,omitempty" toml:"local_rating"`
 	Candidate    Candidate                     `json:"candidate" toml:"candidate"`
 	Family       string                        `json:"family" toml:"family"`
 	Billing      routing.BillingClass          `json:"billing" toml:"billing"`
@@ -265,6 +277,9 @@ func (r Recommendation) RenderHuman() string {
 			cost = fmt.Sprintf("%d tokens/task", *x.Cost.TokensPerTask)
 		}
 		fmt.Fprintf(&b, "%s/%s/%s tier=%s quality=%s index=%s source=%s cost=%s admitted=%t qualified=%t selected=%t frontier=%t reasons=%v\n", x.Candidate.Runtime, x.Candidate.Model, x.Candidate.Effort, x.Tier, q, x.QualityIndex, source, cost, x.Admitted, x.Qualified, x.Selected, x.Frontier, x.ReasonCodes)
+		if x.LocalRating != nil {
+			fmt.Fprintf(&b, "  local path=%s weights_id=%s evidence=%s selection_value=%s bundle=%s\n", x.LocalRating.Path, x.Candidate.WeightsID, x.LocalRating.EvidenceID, x.LocalRating.SelectionValue, x.LocalRating.BundleID)
+		}
 		if x.Headroom != nil {
 			h := x.Headroom
 			fmt.Fprintf(&b, "  headroom=%v slack=%v band=%d over=%t reserve=%t inflight=%d\n", value(h.Headroom), value(h.Slack), h.Band, h.Over, h.Reserve, h.Inflight)

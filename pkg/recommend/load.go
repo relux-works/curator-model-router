@@ -140,6 +140,28 @@ func exactKeys(v any, t reflect.Type, path string) error {
 				return err
 			}
 		}
+
+		if t == reflect.TypeFor[Candidate]() || t == reflect.TypeFor[CatalogRow]() {
+			for _, key := range []string{"weights_id", "expected_weights_id"} {
+				if value, present := obj[key]; present {
+					id, ok := value.(string)
+					if !ok || ValidateWeightsID(id) != nil {
+						return fmt.Errorf("%s.%s is malformed", path, key)
+					}
+				}
+			}
+		}
+
+		required := map[reflect.Type][]string{
+			reflect.TypeFor[ReasoningContext]():        {"thinking", "effort"},
+			reflect.TypeFor[LocalScore]():              {"value", "stderr", "kind", "source", "as_of"},
+			reflect.TypeFor[QuantizationCoefficient](): {"id", "weights_id", "base_record_id", "quantization", "axis", "scope", "source_reasoning", "target_reasoning", "method", "k", "coefficient_interval", "added_stderr", "source", "rationale", "as_of", "expires_at"},
+		}
+		for _, key := range required[t] {
+			if _, ok := obj[key]; !ok {
+				return fmt.Errorf("%s.%s is required", path, key)
+			}
+		}
 		if t == reflect.TypeFor[QualityValue]() || t == reflect.TypeFor[OverlayNumber]() || t == reflect.TypeFor[OverlayTokens]() {
 			if _, ok := obj["value"]; !ok {
 				return fmt.Errorf("%s.value is required", path)
@@ -192,6 +214,9 @@ func (c Catalog) Validate() error {
 		seen[r.Key()] = true
 		if r.Billing != routing.BillingSubscription && r.Billing != routing.BillingLocal && r.Billing != routing.BillingMetered {
 			return refuse(InvalidCatalog, "unknown billing")
+		}
+		if r.Billing != routing.BillingLocal && (r.WeightsID != "" || r.ExpectedWeightsID != "" || r.Reasoning != nil) {
+			return refuse(InvalidCatalog, "hosted row cannot carry local identity")
 		}
 		if r.Latency != "" && r.Latency != "fast" && r.Latency != "medium" && r.Latency != "slow" {
 			return refuse(InvalidCatalog, "unknown latency")
@@ -334,9 +359,14 @@ func TierFor(q *QualityValue, p Policy) Tier {
 		return TierC
 	}
 }
-func tierRank(t Tier) int             { return map[Tier]int{TierU: 0, TierC: 1, TierB: 2, TierA: 3, TierS: 4}[t] }
-func validCandidate(c Candidate) bool { return c.Runtime != "" && c.Model != "" && c.Effort != "" }
-func finite(v float64) bool           { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+func tierRank(t Tier) int { return map[Tier]int{TierU: 0, TierC: 1, TierB: 2, TierA: 3, TierS: 4}[t] }
+func validCandidate(c Candidate) bool {
+	return c.Runtime != "" && c.Model != "" && c.Effort != "" &&
+		(c.WeightsID == "" || ValidateWeightsID(c.WeightsID) == nil) &&
+		(c.ExpectedWeightsID == "" || ValidateWeightsID(c.ExpectedWeightsID) == nil) &&
+		(c.Reasoning == nil || validReasoning(*c.Reasoning))
+}
+func finite(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 func validText(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.String:

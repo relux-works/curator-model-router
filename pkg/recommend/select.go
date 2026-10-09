@@ -22,17 +22,31 @@ func Recommend(in Request) (Recommendation, error) {
 
 // BuildDecision freezes independent copies of inputs and binds the result to
 // their canonical content. Callers may persist JSON() and later call Replay.
-func BuildDecision(in Request) (DecisionRecord, error) {
-	in, err := normalizeRequest(in)
+func BuildDecision(in Request) (DecisionRecord, error) { return buildDecision(in, false) }
+
+// Legacy semantics are reachable only for replay of historical records.
+func buildDecision(in Request, legacyReplay bool) (DecisionRecord, error) {
+	if !legacyReplay && in.SchemaVersion == "" && !hasLocalContract(in) {
+		for _, r := range in.Catalog.Rows {
+			if r.Billing == routing.BillingLocal && (r.Quality != (Quality{}) || in.Locks.Agent == r.Runtime && in.Locks.Model == r.Model && in.Locks.Effort == r.Effort) {
+				in.SchemaVersion = LocalRequestVersion
+				break
+			}
+		}
+	}
+	in, err := normalizeRequestMode(in, legacyReplay)
 	if err != nil {
 		return DecisionRecord{}, err
 	}
-	r, err := selectCandidates(in)
+	r, err := selectCandidates(in, legacyReplay)
 	if err != nil {
 		return DecisionRecord{}, err
 	}
-	version := PublicSelectorVersion
-	d := DecisionRecord{SchemaVersion: DecisionVersion, SelectorVersion: version, Inputs: in, Recommendation: r}
+	version, decisionVersion := PublicSelectorVersion, DecisionVersion
+	if in.SchemaVersion == LocalRequestVersion {
+		version, decisionVersion = LocalSelectorVersion, LocalDecisionVersion
+	}
+	d := DecisionRecord{SchemaVersion: decisionVersion, SelectorVersion: version, Inputs: in, Recommendation: r}
 	id, err := d.ContentID()
 	if err != nil {
 		return DecisionRecord{}, err
@@ -47,7 +61,9 @@ func (d DecisionRecord) ContentID() (string, error) {
 	return canonical.Digest(d)
 }
 func (d DecisionRecord) VerifyContentID() error {
-	if d.SchemaVersion != DecisionVersion || (d.SelectorVersion != SelectorVersion && d.SelectorVersion != BudgetSelectorVersion && d.SelectorVersion != LegacySelectorVersion) {
+	local := d.SchemaVersion == LocalDecisionVersion && d.SelectorVersion == LocalSelectorVersion && d.Inputs.SchemaVersion == LocalRequestVersion
+	legacy := d.SchemaVersion == DecisionVersion && d.Inputs.SchemaVersion == "" && !hasLocalContract(d.Inputs) && (d.SelectorVersion == SelectorVersion || d.SelectorVersion == BudgetSelectorVersion || d.SelectorVersion == LegacySelectorVersion)
+	if !local && !legacy {
 		return refuse(DecisionMismatch, "unsupported decision or selector version")
 	}
 	id, err := d.ContentID()
@@ -76,7 +92,7 @@ func Replay(d DecisionRecord) error {
 	if err := d.VerifyContentID(); err != nil {
 		return err
 	}
-	rebuilt, err := BuildDecision(d.Inputs)
+	rebuilt, err := buildDecision(d.Inputs, d.SchemaVersion == DecisionVersion)
 	if err != nil {
 		return err
 	}
@@ -94,7 +110,22 @@ func Replay(d DecisionRecord) error {
 	return nil
 }
 
-func normalizeRequest(in Request) (Request, error) {
+func normalizeRequest(in Request) (Request, error) { return normalizeRequestMode(in, false) }
+func normalizeRequestMode(in Request, legacyReplay bool) (Request, error) {
+	if in.SchemaVersion != "" && in.SchemaVersion != LocalRequestVersion {
+		return in, refuse(InvalidInput, "unsupported request version")
+	}
+	if hasLocalContract(in) && in.SchemaVersion != LocalRequestVersion {
+		return in, refuse(InvalidInput, "local inputs require recommend-request-v2")
+	}
+	if in.LocalCapability != nil {
+		if in.Usage.AsOf <= 0 {
+			return in, refuse(InvalidInput, "local capability requires frozen positive usage.as_of")
+		}
+		if _, err := in.LocalCapability.Document(); err != nil {
+			return in, err
+		}
+	}
 	// A wholly absent policy is the missing-file case. Partial programmatic
 	// policies must start from DefaultPolicy to preserve explicit zero values.
 	if reflect.DeepEqual(in.Policy, Policy{}) {
@@ -109,7 +140,7 @@ func normalizeRequest(in Request) (Request, error) {
 			return in, refuse(InvalidOverlay, "overlay digest differs")
 		}
 		in.OverlayDigest = digest
-		merged, err := MergeCatalog(in.Catalog, *in.CatalogOverlay)
+		merged, err := mergeCatalog(in.Catalog, *in.CatalogOverlay, legacyReplay)
 		if err != nil {
 			return in, err
 		}
@@ -169,8 +200,17 @@ func normalizeRequest(in Request) (Request, error) {
 		if !validCandidate(c) {
 			return in, refuse(InvalidInput, "admitted configuration is incomplete")
 		}
-		if i > 0 && c == in.Candidates[i-1] {
+		if i > 0 && c.Key() == in.Candidates[i-1].Key() {
 			return in, refuse(InvalidInput, "duplicate admitted configuration")
+		}
+	}
+	for _, row := range in.Catalog.Rows {
+		if row.Billing != routing.BillingLocal {
+			for _, c := range in.Candidates {
+				if c.Key() == row.Key() && (c.WeightsID != "" || c.ExpectedWeightsID != "" || c.Reasoning != nil) {
+					return in, refuse(InvalidInput, "hosted candidate carries local identity")
+				}
+			}
 		}
 	}
 	u := &in.Usage
@@ -218,11 +258,21 @@ func normalizeRequest(in Request) (Request, error) {
 	return in, nil
 }
 
-func selectCandidates(in Request) (Recommendation, error) {
+func selectCandidates(in Request, legacyReplay bool) (Recommendation, error) {
 	r := Recommendation{Alternatives: []RankedCandidate{}, FanOut: []Candidate{}, Explanation: []CandidateExplanation{}}
 	admitted := map[string]bool{}
+	admittedCandidates := map[string]Candidate{}
+	var localDoc LocalCapabilityDocument
+	if in.LocalCapability != nil {
+		var err error
+		localDoc, err = in.LocalCapability.Document()
+		if err != nil {
+			return r, err
+		}
+	}
 	for _, c := range in.Candidates {
 		admitted[c.Key()] = true
+		admittedCandidates[c.Key()] = c
 	}
 	catalogued := map[string]bool{}
 	floor := in.Policy.Difficulties[in.Task.Difficulty].MinimumTier
@@ -246,6 +296,29 @@ func selectCandidates(in Request) (Recommendation, error) {
 	}
 	for _, row := range in.Catalog.Rows {
 		catalogued[row.Key()] = true
+		var localRating *LocalRating
+		localReason := ""
+		if row.Billing == routing.BillingLocal && !legacyReplay {
+			// Unguarded catalog/overlay numbers never certify local weights.
+			row.Quality = Quality{}
+			candidate, ok := admittedCandidates[row.Key()]
+			if ok {
+				if row.WeightsID != "" && row.WeightsID != candidate.WeightsID {
+					localReason = "weights_identity_mismatch"
+				} else if row.Reasoning != nil && (candidate.Reasoning == nil || *row.Reasoning != *candidate.Reasoning) {
+					localReason = "quality_context_mismatch"
+				} else if in.LocalCapability != nil {
+					var err error
+					row.Quality, localRating, localReason, err = localDoc.resolve(candidate, in.Task.TaskClass, in.Usage.AsOf, in.LocalCapability.ID)
+					if err != nil {
+						return r, err
+					}
+				} else if in.SchemaVersion == LocalRequestVersion {
+					localReason = "weights_unrated"
+				}
+				row.Candidate = candidate
+			}
+		}
 		q := taskQuality(row, in.Task.TaskClass)
 		tierPolicy, tierQ := in.Policy, q
 		index := qualityIndex(row, in.Task.TaskClass)
@@ -253,7 +326,15 @@ func selectCandidates(in Request) (Recommendation, error) {
 			tierPolicy.TierEdges = in.Policy.ReviewTierEdges
 			tierQ = q
 		}
-		x := CandidateExplanation{RankedCandidate: RankedCandidate{Candidate: row.Candidate, Family: row.Family, Billing: row.Billing, Tier: TierFor(tierQ, tierPolicy), Quality: q, QualityIndex: index, Cost: row.Cost, ReasonCodes: []string{}}, Admitted: admitted[row.Key()]}
+		if localRating != nil && localRating.Path == "base_quantization_transfer" && q != nil {
+			copyQ := *q
+			copyQ.Value = localRating.SelectionValue.number()
+			// TierFor already subtracts stderr for historical scores; the
+			// transferred selection value contains its complete 2*stderr penalty.
+			copyQ.Stderr = nil
+			tierQ = &copyQ
+		}
+		x := CandidateExplanation{RankedCandidate: RankedCandidate{LocalRating: localRating, Candidate: row.Candidate, Family: row.Family, Billing: row.Billing, Tier: TierFor(tierQ, tierPolicy), Quality: q, QualityIndex: index, Cost: row.Cost, ReasonCodes: []string{}}, Admitted: admitted[row.Key()]}
 		if !x.Admitted {
 			reason(&x, "not_admitted")
 		}
@@ -271,13 +352,26 @@ func selectCandidates(in Request) (Recommendation, error) {
 		if row.Billing == routing.BillingMetered && !in.Policy.AllowMetered {
 			reason(&x, "metered_disabled")
 		}
-		if x.Tier == TierU {
+		explicitUnratedLock := !legacyReplay && row.Billing == routing.BillingLocal && x.Tier == TierU && in.Locks.Agent == row.Runtime && in.Locks.Model == row.Model && in.Locks.Effort == row.Effort && in.Task.Pipeline != "fanout"
+		if x.Tier == TierU && !explicitUnratedLock {
 			reason(&x, "quality_unknown")
 		}
 		x.Qualified = len(x.ReasonCodes) == 0
+		// Identity diagnostics do not authorize execution; a full lock may
+		// retain an advisory U-tier choice after the ordinary hard filters.
+		if localReason != "" {
+			reason(&x, localReason)
+		}
+		if explicitUnratedLock {
+			reason(&x, "explicit_lock_unrated")
+			reason(&x, "local_execution_requires_verified_pin_and_context")
+		}
 		// Informational provenance must not turn a fallback into a hard filter.
 		if index == "bughunt_fallback" {
 			reason(&x, "quality_from_bughunt_fallback")
+		}
+		if localRating != nil {
+			reason(&x, localRating.Path)
 		}
 		if q != nil {
 			reason(&x, "quality_from_"+index)
@@ -310,7 +404,7 @@ func selectCandidates(in Request) (Recommendation, error) {
 	bestBilling := 3
 	for i := range r.Explanation {
 		x := &r.Explanation[i]
-		if x.Qualified && tierRank(x.Tier) < tierRank(floor) {
+		if x.Qualified && tierRank(x.Tier) < tierRank(floor) && !slices.Contains(x.ReasonCodes, "explicit_lock_unrated") {
 			x.Qualified = false
 			reason(x, "below_minimum_tier")
 		}
@@ -635,7 +729,15 @@ func rankedQualityCompare(a, b RankedCandidate) int {
 	if c := qualitySourceCompare(a, b); c != 0 {
 		return c
 	}
-	return qualityCompare(a.Quality, b.Quality)
+	return qualityCompare(selectionQuality(a), selectionQuality(b))
+}
+func selectionQuality(c RankedCandidate) *QualityValue {
+	if c.Quality == nil || c.LocalRating == nil || c.LocalRating.Path != "base_quantization_transfer" {
+		return c.Quality
+	}
+	q := *c.Quality
+	q.Value = c.LocalRating.SelectionValue.number()
+	return &q
 }
 func costAxis(c Cost) (string, float64) {
 	if c.USDPerTask != nil {
@@ -763,4 +865,21 @@ func applyHeadroom(in Request, out *Recommendation, pool []int, groups [][]int) 
 		}
 	}
 	return ordered, ex.Abstention, nil
+}
+
+func hasLocalContract(in Request) bool {
+	if in.LocalCapability != nil {
+		return true
+	}
+	for _, c := range in.Candidates {
+		if c.WeightsID != "" || c.ExpectedWeightsID != "" || c.Reasoning != nil {
+			return true
+		}
+	}
+	for _, r := range in.Catalog.Rows {
+		if r.WeightsID != "" || r.ExpectedWeightsID != "" || r.Reasoning != nil {
+			return true
+		}
+	}
+	return false
 }

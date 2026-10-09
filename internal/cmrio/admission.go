@@ -33,15 +33,9 @@ func Discover(file, role, agent string, catalog recommend.Catalog, contexts ...*
 		if err != nil {
 			return nil, "", admissionError("cannot read candidates")
 		}
-		var out []recommend.Candidate
-		d := json.NewDecoder(bytes.NewReader(b))
-		d.DisallowUnknownFields()
-		if d.Decode(&out) != nil || out == nil {
-			return nil, "", admissionError("candidates must be a JSON list")
-		}
-		var extra any
-		if d.Decode(&extra) != io.EOF {
-			return nil, "", admissionError("trailing candidates data")
+		out, err := recommend.LoadCandidates(b)
+		if err != nil {
+			return nil, "", admissionError("invalid candidates: " + err.Error())
 		}
 		return out, "candidates-file", nil
 	}

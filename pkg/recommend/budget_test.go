@@ -75,7 +75,7 @@ func TestBudgetPickTable(t *testing.T) {
 								if !strings.Contains(d.Recommendation.RenderHuman(), "rule_not_applicable: difficulty") {
 									t.Fatal("missing skipped rule explanation")
 								}
-							} else if x.Candidate != (Candidate{"codex", "gpt-6-astra", "medium"}) {
+							} else if x.Candidate != (Candidate{Runtime: "codex", Model: "gpt-6-astra", Effort: "medium"}) {
 								t.Fatal("host reviewer pin lost", x)
 							}
 						}
@@ -139,7 +139,7 @@ func TestScopedReviewFallbacks(t *testing.T) {
 			if delicate {
 				in.Task.Sensitivity = "delicate"
 			}
-			in.Candidates = []Candidate{{"codex", "gpt-6.1-sol", "high"}}
+			in.Candidates = []Candidate{{Runtime: "codex", Model: "gpt-6.1-sol", Effort: "high"}}
 			chosenExplanation(t, run(t, in))
 		}
 	}
@@ -297,7 +297,7 @@ func TestScopedReviewPreferenceAnchoredQuality(t *testing.T) {
 			row.Cost.USDPerTask = ptr(2.0)
 		}
 	}
-	in.Candidates = []Candidate{{"rt-a", "alpha", "high"}, {"rt-a", "delta", "high"}, {"rt-s", "super", "max"}}
+	in.Candidates = []Candidate{{Runtime: "rt-a", Model: "alpha", Effort: "high"}, {Runtime: "rt-a", Model: "delta", Effort: "high"}, {Runtime: "rt-s", Model: "super", Effort: "max"}}
 	in.Policy.Rules = []Rule{{ID: "first", Source: "operator", When: RuleWhen{Difficulty: []string{"hard"}}, Prefer: &RulePreference{Runtimes: []string{"rt-a", "rt-s"}}}}
 	// Anchor on the highest mean across providers. All three tie with super,
 	// so prefer rt-a and then its cheaper delta; never re-anchor by runtime.

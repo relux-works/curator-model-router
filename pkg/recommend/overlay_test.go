@@ -34,7 +34,7 @@ func TestOverlayPrecedenceDigestReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if d.Recommendation.Selected == nil || *d.Recommendation.Selected != (Candidate{"codex", "gpt-6-luna", "low"}) {
+	if d.Recommendation.Selected == nil || *d.Recommendation.Selected != (Candidate{Runtime: "codex", Model: "gpt-6-luna", Effort: "low"}) {
 		t.Fatal(d.Recommendation.RenderHuman())
 	}
 	digest, err := o.Digest()
@@ -126,7 +126,7 @@ func TestOverlayStrictValidationAndUnknownRows(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := range merged.Rows {
-		if merged.Rows[i].Candidate == (Candidate{"codex", "gpt-6-luna", "low"}) {
+		if merged.Rows[i].Candidate == (Candidate{Runtime: "codex", Model: "gpt-6-luna", Effort: "low"}) {
 			merged.Rows[i].Quality.Coding.Value = 7
 			*merged.Rows[i].Cost.USDPerTask = 7
 			merged.Rows[i].Cost.USDProvenance.Source = "mutated copy"
@@ -172,7 +172,7 @@ func TestPrimaryAndBugHuntFallbackNeverMixScales(t *testing.T) {
 				}
 				in.Policy.Rules = []Rule{{ID: "fictional-preference", Source: "FICTIONAL test", Prefer: &RulePreference{Runtimes: []string{"claude", "codex"}}}}
 				got := run(t, in)
-				if got.Selected == nil || *got.Selected != (Candidate{"codex", "gpt-6-luna", "low"}) {
+				if got.Selected == nil || *got.Selected != (Candidate{Runtime: "codex", Model: "gpt-6-luna", Effort: "low"}) {
 					t.Fatalf("%s/%s/%s: %s", class, budget, difficulty, got.RenderHuman())
 				}
 				for _, x := range got.Explanation {
@@ -185,7 +185,7 @@ func TestPrimaryAndBugHuntFallbackNeverMixScales(t *testing.T) {
 	}
 	in := realRequest(t)
 	in.Task.TaskClass = "research"
-	in.Candidates = []Candidate{{"muse", "muse-spark-1.3-contributor", "max"}}
+	in.Candidates = []Candidate{{Runtime: "muse", Model: "muse-spark-1.3-contributor", Effort: "max"}}
 	if got := run(t, in); got.Selected != nil || got.Refusal == nil {
 		t.Fatal("unknown quality selected")
 	}
@@ -207,7 +207,7 @@ func TestTaskSourceAndScaleSpecificTiering(t *testing.T) {
 		t.Fatal("coding substituted for overall")
 	}
 	in := realRequest(t)
-	in.Candidates = []Candidate{{"codex", "gpt-6-astra", "max"}}
+	in.Candidates = []Candidate{{Runtime: "codex", Model: "gpt-6-astra", Effort: "max"}}
 	for _, class := range []string{"code.implement", "research", "review.code"} {
 		in.Task.TaskClass = class
 		in.Task.Difficulty = "critical"
@@ -230,7 +230,7 @@ func TestOverlayReplacesMeasurementAndPreservesExplicitZero(t *testing.T) {
 		t.Fatal(err)
 	}
 	in.CatalogOverlay = &o
-	in.Candidates = []Candidate{{"codex", "gpt-6-luna", "low"}}
+	in.Candidates = []Candidate{{Runtime: "codex", Model: "gpt-6-luna", Effort: "low"}}
 	in.Task = TaskProfile{Role: "reviewer", TaskClass: "review.code", Difficulty: "trivial"}
 	d, err := BuildDecision(in)
 	if err != nil {

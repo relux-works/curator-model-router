@@ -1,0 +1,42 @@
+{
+  "schema_version": "public-base-export-v1",
+  "records": [
+    {
+      "id": "fictional-base",
+      "base_id": "hf://models/Example/Fictional-27B",
+      "revision": "unknown",
+      "reasoning": {
+        "thinking": "on",
+        "effort": "high"
+      },
+      "scope": "code.implement",
+      "quality": {
+        "coding": {
+          "value": 80,
+          "stderr": 2,
+          "kind": "estimate",
+          "source": "FICTIONAL base scores",
+          "as_of": "2026-10-09"
+        }
+      },
+      "provenance": {
+        "coding": {
+          "provider_id": "public-json",
+          "provider_version": "1",
+          "terms": "FICTIONAL fixture, CC0; no benchmark data",
+          "source_model_id": "Example/Fictional-27B",
+          "payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "retrieved_at": "2026-10-09T00:00:00Z",
+          "benchmark": "FICTIONAL",
+          "benchmark_version": "1",
+          "split": "synthetic",
+          "metric": "synthetic-score",
+          "unit": "points",
+          "direction": "higher",
+          "original_score": 80,
+          "calibration": "FICTIONAL identity calibration to 0–100; assumed uncertainty, no empirical claim"
+        }
+      }
+    }
+  ]
+}
