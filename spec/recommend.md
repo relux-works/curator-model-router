@@ -334,8 +334,14 @@ benchmark strings; no inferred mapping is supported.
 Every ranked local candidate requires its independently supplied pin to equal W.
 Missing pins, weights or reasoning, mismatches, absent materializations, expired
 coefficients and absent applicable quality produce tier U (UNRATED). A supplied
-catalog W/reasoning guard must also match the admitted candidate. Hosted candidates
-cannot carry local identities. Local inline catalog scores never back a v6 rating.
+catalog W/reasoning guard must also match the admitted candidate. A supplied
+catalog `expected_weights_id` must equal the admitted W, including on a pin-only
+row; conflicts produce `weights_identity_mismatch` and UNRATED status. The merged
+candidate preserves every supplied catalog guard, filling only absent fields
+from admission. Both original bindings remain frozen in the decision inputs.
+Catalog fields never complete a missing admitted identity, pin or context for
+rating. Hosted candidates cannot carry local identities. Local inline catalog
+scores never back a v6 rating.
 
 A complete exact lock (`agent`, `model`, and `effort`, including literal `none`)
 may select an admitted unrated local tuple for a single pipeline. The explanation
@@ -374,8 +380,10 @@ quantization annotation, lineage provenance and a required measurements array.
 Omitting the base link permits measurement-only targets. Each measurement contains
 unique evidence `id`, axis, reasoning, scope and a complete measured score. Review
 requires measured kind, real positive n and stderr. Hosted cost or latency is never
-transferred. Scope is an exact normalized task class or `*`; operators must review
-recipe/template, budgets and software applicability before claiming that scope.
+transferred. Scope is an exact supported normalized task class or `*`; unknown
+classes and misspellings refuse in base, measurement and coefficient loaders,
+including provider imports. Operators must review recipe/template, budgets and
+software applicability before claiming that scope.
 
 Each coefficient requires unique immutable `id`, exact W, matching base-record ID
 and quantization annotation, overall/coding axis, scope, source/target reasoning,
@@ -403,11 +411,15 @@ selection_value = max(0, value - 2*stderr)
 Uncertainty is never discounted, and addition cannot overflow silently. With this
 identity-only slice there is no fractional addition beyond six places, so summation
 is already the required ceil6. Transferred quality uses selection_value for tier,
-quality order and Pareto comparisons, while explanations retain value/stderr,
-base value/stderr, k, added uncertainty and evidence ID. Measured/hosted selection
+quality order and Pareto comparisons using exact decimal rationals, while
+explanations retain value/stderr, base value/stderr, k, added uncertainty and
+evidence ID. Measured/hosted selection
 semantics are unchanged. Estimate stderr is declared effective uncertainty, with
 no invented sample count or confidence interpretation. The FICTIONAL arithmetic
 vector 80/2 × 0.95 with added uncertainty 3 yields 76/5/66.
+Policy edges and existing hosted/measured numbers use their shortest round-trip
+decimal spelling for comparisons with local transfers. Comparisons wholly
+between hosted/measured values retain their existing behavior.
 
 Per axis and matching applicability: exact-W measurement wins even when lower,
 then operator-estimate transfer, then published/paired transfer, then UNRATED.

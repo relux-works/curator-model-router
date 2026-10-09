@@ -41,6 +41,29 @@ func matchingReasoning(a, b ReasoningContext) bool {
 	return a == b && a.Thinking == "on" && a.Effort != "unknown"
 }
 
+// Preserve every catalog guard; admission fills only absent fields. Conflicts
+// remain visible in the explanation, with both originals frozen in the inputs.
+func mergeLocalCandidate(guard, admitted Candidate) (Candidate, string) {
+	merged := guard
+	if merged.WeightsID == "" {
+		merged.WeightsID = admitted.WeightsID
+	}
+	if merged.ExpectedWeightsID == "" {
+		merged.ExpectedWeightsID = admitted.ExpectedWeightsID
+	}
+	if merged.Reasoning == nil {
+		merged.Reasoning = admitted.Reasoning
+	}
+	if guard.WeightsID != "" && guard.WeightsID != admitted.WeightsID ||
+		guard.ExpectedWeightsID != "" && guard.ExpectedWeightsID != admitted.WeightsID {
+		return merged, "weights_identity_mismatch"
+	}
+	if guard.Reasoning != nil && (admitted.Reasoning == nil || *guard.Reasoning != *admitted.Reasoning) {
+		return merged, "quality_context_mismatch"
+	}
+	return merged, ""
+}
+
 // Decimal preserves the original JSON number token and uses fixed millionths.
 // Transfer inputs reject exponents, signs and more than six fractional digits.
 type Decimal string
@@ -66,6 +89,40 @@ func decimalUnits(u int64) Decimal {
 	return Decimal(fmt.Sprintf("%d.%06d", u/1000000, u%1000000))
 }
 func (d Decimal) number() float64 { v, _ := strconv.ParseFloat(string(d), 64); return v }
+
+func (d Decimal) rational() *big.Rat {
+	u, _ := d.units() // callers consume validated evidence
+	return new(big.Rat).SetFrac64(u, 1000000)
+}
+
+// Policy/hosted numbers retain their JSON decimal spelling. Local transfer
+// values never pass through binary floating point for tier or order comparisons.
+func qualityNumberRat(v float64) *big.Rat {
+	r, _ := new(big.Rat).SetString(strconv.FormatFloat(v, 'f', -1, 64))
+	return r
+}
+func localTransferTier(value Decimal, p Policy) Tier {
+	v := value.rational()
+	switch {
+	case v.Cmp(qualityNumberRat(p.TierEdges.S)) >= 0:
+		return TierS
+	case v.Cmp(qualityNumberRat(p.TierEdges.A)) >= 0:
+		return TierA
+	case v.Cmp(qualityNumberRat(p.TierEdges.B)) >= 0:
+		return TierB
+	default:
+		return TierC
+	}
+}
+func isLocalTransfer(c RankedCandidate) bool {
+	return c.LocalRating != nil && c.LocalRating.Path == "base_quantization_transfer"
+}
+func selectionQualityRat(c RankedCandidate) *big.Rat {
+	if isLocalTransfer(c) {
+		return c.LocalRating.SelectionValue.rational()
+	}
+	return qualityNumberRat(c.Quality.Value)
+}
 
 // LocalScore uses uncertainty in quality points. Estimates never claim a sample count.
 type LocalScore struct {
@@ -209,7 +266,7 @@ func (t CoefficientTable) Validate() error {
 	for _, c := range t.Records {
 		k, e := c.K.units()
 		_, uerr := c.AddedStderr.units()
-		if c.ID == "" || seen[c.ID] || ValidateWeightsID(c.WeightsID) != nil || c.BaseRecordID == "" || c.Quantization == "" || !validAxis(c.Axis) || c.Axis == "review" || c.Scope == "" || !validReasoning(c.SourceReasoning) || !validReasoning(c.TargetReasoning) || !matchingReasoning(c.SourceReasoning, c.TargetReasoning) || !slices.Contains([]string{"paired-measurement", "published-transfer", "operator-estimate"}, c.Method) || e != nil || uerr != nil || k > 1000000 || len(c.CoefficientInterval) != 2 || strings.TrimSpace(c.Source) == "" || strings.TrimSpace(c.Rationale) == "" || !validDate(c.AsOf) || !validExpiry(c.ExpiresAt) {
+		if c.ID == "" || seen[c.ID] || ValidateWeightsID(c.WeightsID) != nil || c.BaseRecordID == "" || c.Quantization == "" || !validAxis(c.Axis) || c.Axis == "review" || !validLocalScope(c.Scope) || !validReasoning(c.SourceReasoning) || !validReasoning(c.TargetReasoning) || !matchingReasoning(c.SourceReasoning, c.TargetReasoning) || !slices.Contains([]string{"paired-measurement", "published-transfer", "operator-estimate"}, c.Method) || e != nil || uerr != nil || k > 1000000 || len(c.CoefficientInterval) != 2 || strings.TrimSpace(c.Source) == "" || strings.TrimSpace(c.Rationale) == "" || !validDate(c.AsOf) || !validExpiry(c.ExpiresAt) {
 			return refuse(InvalidLocalCapability, "invalid coefficient, reasoning, interval or expiry")
 		}
 		lo, e1 := c.CoefficientInterval[0].units()
@@ -225,7 +282,7 @@ func validateBases(bases []BaseModelRecord) error {
 	seen, casing := map[string]bool{}, map[string]string{}
 	for _, b := range bases {
 		folded := strings.ToLower(b.BaseID)
-		if b.ID == "" || seen[b.ID] || !basePattern.MatchString(b.BaseID) || casing[folded] != "" && casing[folded] != b.BaseID || b.Revision == "" || !validReasoning(b.Reasoning) || b.Scope == "" || len(b.Quality) == 0 || len(b.Quality) != len(b.Provenance) {
+		if b.ID == "" || seen[b.ID] || !basePattern.MatchString(b.BaseID) || casing[folded] != "" && casing[folded] != b.BaseID || b.Revision == "" || !validReasoning(b.Reasoning) || !validLocalScope(b.Scope) || len(b.Quality) == 0 || len(b.Quality) != len(b.Provenance) {
 			return refuse(InvalidLocalCapability, "invalid/duplicate base or conflicting canonical spelling")
 		}
 		seen[b.ID] = true
@@ -270,7 +327,7 @@ func (d LocalCapabilityDocument) Validate() error {
 		}
 		mats[m.WeightsID] = m
 		for _, v := range m.Measurements {
-			if v.ID == "" || ids[v.ID] || !validAxis(v.Axis) || !validReasoning(v.Reasoning) || v.Scope == "" {
+			if v.ID == "" || ids[v.ID] || !validAxis(v.Axis) || !validReasoning(v.Reasoning) || !validLocalScope(v.Scope) {
 				return refuse(InvalidLocalCapability, "invalid or duplicate local measurement")
 			}
 			ids[v.ID] = true
@@ -328,6 +385,7 @@ func transfer(base LocalScore, c QuantizationCoefficient) (LocalScore, Decimal, 
 	}
 	return LocalScore{Value: decimalUnits(v), Stderr: decimalUnits(unc), Kind: "estimate", Source: c.Source, AsOf: c.AsOf}, decimalUnits(selection.Int64()), nil
 }
+func validLocalScope(scope string) bool   { return scope == "*" || validTaskClass(scope) }
 func localScope(scope, class string) bool { return scope == "*" || scope == class }
 func priorityIndex(ids []string, id string) int {
 	i := slices.Index(ids, id)

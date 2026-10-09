@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/relux-works/curator-model-router/pkg/canonical"
 	"github.com/relux-works/curator-model-router/pkg/recommend"
+	"github.com/relux-works/curator-model-router/pkg/routing"
 )
 
 func TestLocalImportCLI(t *testing.T) {
@@ -60,9 +63,16 @@ func TestLocalDecideOfflineCLI(t *testing.T) {
 	}
 	c := recommend.Candidate{Runtime: "local", Model: "fictional", Effort: "none", WeightsID: doc.Materializations[0].WeightsID, ExpectedWeightsID: doc.Materializations[0].WeightsID, Reasoning: &recommend.ReasoningContext{Thinking: "on", Effort: "high"}}
 	request := recommend.Request{SchemaVersion: recommend.LocalRequestVersion, LocalCapability: &bundle, Catalog: recommend.Catalog{SchemaVersion: recommend.CatalogVersion, Rows: []recommend.CatalogRow{{Candidate: c, Family: "fictional", Billing: "local", Cost: recommend.Cost{Kind: "estimate", Source: "FICTIONAL", AsOf: "2026-10-09"}}}}, Candidates: []recommend.Candidate{c}, Task: recommend.TaskProfile{Role: "developer", TaskClass: "code.implement", Difficulty: "hard"}, Policy: recommend.DefaultPolicy(), Usage: recommend.UsageSnapshot{AsOf: 1800000000}}
+	// File input must already be null-free; strict loading precedes normalization.
+	request.Usage.Facts = []routing.UsageFact{}
+	request.Usage.Inflight = []routing.Inflight{}
+	request.Usage.ScopeMap = routing.ScopeMap{Version: "v1", Entries: []routing.ScopeMapEntry{}}
 	raw, err = json.Marshal(request)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if _, err := canonical.Canonicalize(raw); err != nil {
+		t.Fatal("invalid CLI fixture", err)
 	}
 	file := filepath.Join(t.TempDir(), "request.json")
 	if err := os.WriteFile(file, raw, 0600); err != nil {
@@ -75,5 +85,38 @@ func TestLocalDecideOfflineCLI(t *testing.T) {
 	d, err := recommend.LoadDecision(out.Bytes())
 	if err != nil || d.Recommendation.Selected == nil {
 		t.Fatal(out.String(), err)
+	}
+	if err := recommend.Replay(d); err != nil {
+		t.Fatal(err)
+	}
+	first := out.String()
+	out.Reset()
+	errout.Reset()
+	if code := run([]string{"local", "decide", "--input", file}, &out, &errout); code != 0 || out.String() != first {
+		t.Fatal("offline CLI is not deterministic", code, errout.String())
+	}
+	for _, tc := range []struct {
+		name string
+		edit func(*recommend.Request)
+	}{
+		{"facts", func(r *recommend.Request) { r.Usage.Facts = nil }},
+		{"inflight", func(r *recommend.Request) { r.Usage.Inflight = nil }},
+		{"scope entries", func(r *recommend.Request) { r.Usage.ScopeMap.Entries = nil }},
+	} {
+		t.Run("reject null "+tc.name, func(t *testing.T) {
+			bad := request
+			tc.edit(&bad)
+			raw, err := json.Marshal(bad)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(file, raw, 0600); err != nil {
+				t.Fatal(err)
+			}
+			var out, errout bytes.Buffer
+			if code := run([]string{"local", "decide", "--input", file}, &out, &errout); code != 2 || !strings.Contains(errout.String(), "canonical_null") || out.Len() != 0 {
+				t.Fatal("null request accepted", code, out.String(), errout.String())
+			}
+		})
 	}
 }

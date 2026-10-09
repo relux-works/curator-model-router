@@ -2,6 +2,8 @@ package recommend
 
 import (
 	"encoding/json"
+	"fmt"
+	"math/big"
 	"net/http"
 	"os"
 	"reflect"
@@ -97,13 +99,136 @@ func TestLocalTransferAndMeasuredOverride(t *testing.T) {
 		t.Fatal(d)
 	}
 }
+
+func TestLocalCatalogGuardMismatch(t *testing.T) {
+	other := "gguf-sha256:" + strings.Repeat("3", 64)
+	for _, tc := range []struct {
+		name string
+		edit func(*Candidate)
+	}{
+		{"pin with matching weights", func(c *Candidate) { c.ExpectedWeightsID = other }},
+		{"pin only", func(c *Candidate) { c.WeightsID = ""; c.ExpectedWeightsID = other }},
+		{"conflicting weights and pin", func(c *Candidate) { c.WeightsID = other; c.ExpectedWeightsID = other }},
+		{"conflicting weights with matching pin", func(c *Candidate) { c.WeightsID = other }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r, _ := localFixture(t)
+			baseline, err := BuildDecision(r)
+			if err != nil {
+				t.Fatal(err)
+			}
+			tc.edit(&r.Catalog.Rows[0].Candidate)
+			guard := r.Catalog.Rows[0].Candidate
+			admitted := r.Candidates[0]
+			want := guard
+			if want.WeightsID == "" {
+				want.WeightsID = admitted.WeightsID
+			}
+			for _, lock := range []Locks{{}, {Agent: "local"}, {Agent: "local", Model: "fictional"}, {Agent: "local", Model: "fictional", Effort: "none"}} {
+				r.Locks = lock
+				d, err := BuildDecision(r)
+				if err != nil {
+					t.Fatal(err)
+				}
+				x := d.Recommendation.Explanation[0]
+				if x.Tier != TierU || x.Quality != nil || x.LocalRating != nil || !slices.Contains(x.ReasonCodes, "weights_identity_mismatch") {
+					t.Fatal("conflicting catalog guard rated", x)
+				}
+				if !reflect.DeepEqual(x.Candidate, want) || !reflect.DeepEqual(d.Inputs.Catalog.Rows[0].Candidate, guard) || !reflect.DeepEqual(d.Inputs.Candidates[0], admitted) {
+					t.Fatal("guard lost during merge", d)
+				}
+				explicit := lock.Effort != ""
+				if x.Qualified != explicit || (d.Recommendation.Selected != nil) != explicit {
+					t.Fatal("conflicting guard admitted automatically", d)
+				}
+				if explicit && (!reflect.DeepEqual(*d.Recommendation.Selected, want) || !slices.Contains(x.ReasonCodes, "explicit_lock_unrated")) {
+					t.Fatal("lock erased guard or unrated explanation", d)
+				}
+				if d.DecisionID == baseline.DecisionID || Replay(d) != nil {
+					t.Fatal("catalog guard not frozen/replayable", d)
+				}
+			}
+			r.Task.Pipeline = "fanout"
+			d, err := BuildDecision(r)
+			if err != nil || d.Recommendation.Selected != nil || len(d.Recommendation.FanOut) != 0 {
+				t.Fatal("conflicting guard entered fanout", d, err)
+			}
+			// The guard applies even when there is no capability bundle.
+			r.Task.Pipeline = "single"
+			r.LocalCapability = nil
+			d, err = BuildDecision(r)
+			if err != nil || !slices.Contains(d.Recommendation.Explanation[0].ReasonCodes, "weights_identity_mismatch") {
+				t.Fatal("guard requires evidence to be enforced", d, err)
+			}
+		})
+	}
+}
+
+func TestLocalCatalogGuardMerge(t *testing.T) {
+	// All combinations of absent/equal guards preserve the union of fields.
+	for mask := 0; mask < 8; mask++ {
+		t.Run(fmt.Sprint(mask), func(t *testing.T) {
+			r, _ := localFixture(t)
+			want := r.Candidates[0]
+			if mask&1 == 0 {
+				r.Catalog.Rows[0].WeightsID = ""
+			}
+			if mask&2 == 0 {
+				r.Catalog.Rows[0].ExpectedWeightsID = ""
+			}
+			if mask&4 == 0 {
+				r.Catalog.Rows[0].Reasoning = nil
+			}
+			d, err := BuildDecision(r)
+			if err != nil || d.Recommendation.Selected == nil || !reflect.DeepEqual(*d.Recommendation.Selected, want) {
+				t.Fatal("matching guard merge failed", d, err)
+			}
+		})
+	}
+	for _, tc := range []struct {
+		name, reason string
+		edit         func(*Candidate)
+	}{
+		{"absent admitted weights", "weights_identity_mismatch", func(c *Candidate) { c.WeightsID = "" }},
+		{"absent admitted pin", "weights_pin_missing", func(c *Candidate) { c.ExpectedWeightsID = "" }},
+		{"absent admitted context", "quality_context_mismatch", func(c *Candidate) { c.Reasoning = nil }},
+		{"conflicting admitted context", "quality_context_mismatch", func(c *Candidate) { c.Reasoning = &ReasoningContext{Thinking: "on", Effort: "low"} }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r, _ := localFixture(t)
+			want := r.Catalog.Rows[0].Candidate
+			tc.edit(&r.Candidates[0])
+			for _, lock := range []Locks{{}, {Agent: "local", Model: "fictional", Effort: "none"}} {
+				r.Locks = lock
+				d, err := BuildDecision(r)
+				if err != nil {
+					t.Fatal(err)
+				}
+				x := d.Recommendation.Explanation[0]
+				if !reflect.DeepEqual(x.Candidate, want) || x.Tier != TierU || x.Quality != nil || x.LocalRating != nil || !slices.Contains(x.ReasonCodes, tc.reason) {
+					t.Fatal("catalog guard lost or used to complete admission", x)
+				}
+				if (d.Recommendation.Selected != nil) != (lock.Effort != "") {
+					t.Fatal("incomplete admission auto-ranked", d)
+				}
+				if d.Recommendation.Selected != nil && !reflect.DeepEqual(*d.Recommendation.Selected, want) {
+					t.Fatal("selected candidate lost guard", d)
+				}
+			}
+		})
+	}
+}
 func TestLocalUnratedAndLocks(t *testing.T) {
 	edits := []struct {
 		name   string
 		edit   func(*Request)
 		reason string
 	}{
-		{"missing weights", func(r *Request) { r.Catalog.Rows[0].WeightsID = ""; r.Candidates[0].WeightsID = "" }, "weights_identity_missing"},
+		{"missing weights", func(r *Request) {
+			r.Catalog.Rows[0].WeightsID = ""
+			r.Catalog.Rows[0].ExpectedWeightsID = ""
+			r.Candidates[0].WeightsID = ""
+		}, "weights_identity_missing"},
 		{"missing pin", func(r *Request) { r.Candidates[0].ExpectedWeightsID = "" }, "weights_pin_missing"},
 		{"wrong pin", func(r *Request) { r.Candidates[0].ExpectedWeightsID = "gguf-sha256:" + strings.Repeat("3", 64) }, "weights_identity_mismatch"},
 		{"repinned alias", func(r *Request) {
@@ -112,6 +237,7 @@ func TestLocalUnratedAndLocks(t *testing.T) {
 		}, "weights_identity_mismatch"},
 		{"different weights", func(r *Request) {
 			r.Catalog.Rows[0].WeightsID = ""
+			r.Catalog.Rows[0].ExpectedWeightsID = ""
 			r.Candidates[0].WeightsID = "gguf-sha256:" + strings.Repeat("3", 64)
 			r.Candidates[0].ExpectedWeightsID = r.Candidates[0].WeightsID
 		}, "weights_unrated"},
@@ -122,6 +248,10 @@ func TestLocalUnratedAndLocks(t *testing.T) {
 		{"unknown thinking", func(r *Request) {
 			r.Catalog.Rows[0].Reasoning = nil
 			r.Candidates[0].Reasoning = &ReasoningContext{Thinking: "unknown", Effort: "high"}
+		}, "quality_context_mismatch"},
+		{"off none", func(r *Request) {
+			r.Catalog.Rows[0].Reasoning = nil
+			r.Candidates[0].Reasoning = &ReasoningContext{Thinking: "off", Effort: "none"}
 		}, "quality_context_mismatch"},
 		{"missing context", func(r *Request) { r.Catalog.Rows[0].Reasoning = nil; r.Candidates[0].Reasoning = nil }, "quality_context_mismatch"},
 		{"context guard", func(r *Request) { r.Candidates[0].Reasoning = &ReasoningContext{Thinking: "on", Effort: "low"} }, "quality_context_mismatch"},
@@ -261,6 +391,98 @@ func TestExactDecimalTransfer(t *testing.T) {
 		var d Decimal
 		if json.Unmarshal([]byte(raw), &d) == nil {
 			t.Fatal("decimal accepted", raw)
+		}
+	}
+}
+
+func TestExactDecimalSelectionComparisons(t *testing.T) {
+	for _, value := range []Decimal{"0.1", "33.333295", "62.000001", "99.999999"} {
+		c := RankedCandidate{QualityIndex: "coding", Quality: &QualityValue{Value: value.number()}, LocalRating: &LocalRating{Path: "base_quantization_transfer", SelectionValue: value}}
+		want, ok := new(big.Rat).SetString(string(value))
+		if !ok || selectionQualityRat(c).Cmp(want) != 0 {
+			t.Fatal("local comparison rounded through float64", value, selectionQualityRat(c))
+		}
+	}
+	p := DefaultPolicy()
+	p.TierEdges = TierEdges{62.000001, 56.000001, 45.000001}
+	for _, tc := range []struct {
+		value Decimal
+		tier  Tier
+	}{
+		{"62.000001", TierS}, {"62.000000", TierA},
+		{"56.000001", TierA}, {"56.000000", TierB},
+		{"45.000001", TierB}, {"45.000000", TierC},
+	} {
+		if tier := localTransferTier(tc.value, p); tier != tc.tier {
+			t.Fatal("incorrect exact tier edge", tc, tier)
+		}
+	}
+	a := RankedCandidate{QualityIndex: "coding", Quality: &QualityValue{Value: 76}, LocalRating: &LocalRating{Path: "base_quantization_transfer", SelectionValue: "62.000001"}, Cost: Cost{USDPerTask: ptr(1.0)}}
+	b := a
+	b.LocalRating = &LocalRating{Path: "base_quantization_transfer", SelectionValue: "62.000000"}
+	if rankedQualityCompare(a, b) != -1 || rankedQualityCompare(b, a) != 1 || !dominates(a, b) || dominates(b, a) {
+		t.Fatal("exact selection value not used for ordering/Pareto")
+	}
+	// A primary hosted/measured score with the same decimal value ties.
+	b.LocalRating = nil
+	b.Quality = &QualityValue{Value: 62.000001}
+	if rankedQualityCompare(a, b) != 0 || rankedQualityCompare(b, a) != 0 {
+		t.Fatal("mixed local/hosted comparison changed decimal scale")
+	}
+}
+
+func TestLocalScopeValidation(t *testing.T) {
+	for _, scope := range []string{"", "code.implment", "Code.implement", " code.implement", "code.*", "future.task"} {
+		for _, kind := range []string{"base", "coefficient", "measurement"} {
+			t.Run(kind+"/"+scope, func(t *testing.T) {
+				r, doc := localFixture(t)
+				switch kind {
+				case "base":
+					doc.Bases[0].Scope = scope
+					baseRaw, err := json.Marshal(BaseRecordsDocument{SchemaVersion: BaseRecordsVersion, Records: doc.Bases})
+					if err != nil {
+						t.Fatal(err)
+					}
+					if _, err := LoadBaseRecords(baseRaw); err == nil {
+						t.Fatal("unknown base scope loaded")
+					}
+					exportRaw, err := json.Marshal(BaseRecordsDocument{SchemaVersion: PublicBaseExportVersion, Records: doc.Bases})
+					if err != nil {
+						t.Fatal(err)
+					}
+					if _, err := DefaultBaseProviders().Import("public-json", exportRaw); err == nil {
+						t.Fatal("unknown scope imported")
+					}
+				case "coefficient":
+					doc.Coefficients.Records[0].Scope = scope
+					tableRaw, err := json.Marshal(doc.Coefficients)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if _, err := LoadCoefficientTable(tableRaw); err == nil {
+						t.Fatal("unknown coefficient scope loaded")
+					}
+				case "measurement":
+					doc.Materializations[0].Measurements = []LocalMeasurement{{ID: "scope-test", Axis: "coding", Reasoning: *r.Candidates[0].Reasoning, Scope: scope, Score: LocalScore{Value: "40", Stderr: "1", Kind: "measured", Source: "FICTIONAL", AsOf: "2026-10-09"}}}
+				}
+				raw, err := json.Marshal(doc)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if _, err := LoadLocalCapability(raw); err == nil {
+					t.Fatal("unknown local scope loaded", scope)
+				}
+			})
+		}
+	}
+	for _, scope := range []string{"*", "code.implement", "code.fix", "code.refactor", "code.test", "review.code", "review.spec", "docs.write", "research", "planning", "orchestration", "tool-use", "ops", "routine"} {
+		if !validLocalScope(scope) {
+			t.Fatal("valid scope refused", scope)
+		}
+		if scope != "*" {
+			if _, err := (TaskProfile{Role: "developer", TaskClass: scope}).Normalize(); err != nil {
+				t.Fatal("scope and task taxonomy diverged", scope, err)
+			}
 		}
 	}
 }

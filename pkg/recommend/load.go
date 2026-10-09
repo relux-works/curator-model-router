@@ -306,11 +306,14 @@ func (p Policy) Validate() error {
 	}
 	return nil
 }
+func validTaskClass(class string) bool {
+	return slices.Contains([]string{"code.implement", "code.fix", "code.refactor", "code.test", "review.code", "review.spec", "docs.write", "research", "planning", "orchestration", "tool-use", "ops", "routine"}, class)
+}
 func (t TaskProfile) Normalize() (TaskProfile, error) {
 	if t.Role == "" {
 		return t, refuse(InvalidTask, "role is required")
 	}
-	if !slices.Contains([]string{"code.implement", "code.fix", "code.refactor", "code.test", "review.code", "review.spec", "docs.write", "research", "planning", "orchestration", "tool-use", "ops", "routine"}, t.TaskClass) {
+	if !validTaskClass(t.TaskClass) {
 		return t, refuse(InvalidTask, "unknown task_class")
 	}
 	if t.Difficulty == "" {

@@ -53,7 +53,11 @@ they are not ratings for any real model or executable GGUFs.
    `effort=none` while reasoning records `thinking=on, effort=xhigh`.
    Candidate IDs use exactly `gguf-sha256:` plus 64 lowercase hex digits.
    Supply local catalog rows with `billing=local` and empty inline quality;
-   optional W/reasoning row guards further restrict matching.
+   optional `weights_id`, `expected_weights_id`, and reasoning row guards
+   further restrict matching. A row pin must equal the admitted W, even on a
+   pin-only row. Conflicts remain UNRATED with a mismatch explanation. Merging
+   preserves supplied row guards and fills only absent fields from admission;
+   a row guard never supplies missing admission identity, pin or context.
 
    ```sh
    cmr recommend --catalog catalog.json --candidates candidates.json --local-capability capability.json --role developer --task-class code.implement --json
@@ -65,6 +69,9 @@ they are not ratings for any real model or executable GGUFs.
    byte-preserving bundle with `recommend.FreezeLocalCapability`; its json string
    must retain the exact bytes hashed by id. The offline command writes only its
    decision to stdout and does not save to a state directory.
+   JSON file input must contain arrays for `usage.facts`, `usage.inflight` and
+   `usage.scope_map.entries`, using `[]` when empty. Nulls are rejected before
+   normalization.
 
 The transfer explanation includes unpenalized quality, declared uncertainty and
 conservative selection quality. Exact applicable measurements always win, even
@@ -73,6 +80,11 @@ expired transfers and missing axis scores stay UNRATED. Fully explicit tuple
 locks may return an advisory unrated selection with reasons; it cannot enter
 fan-out or override admission/constraints/policy. Such a selection never
 establishes permission to execute unverified weights.
+
+Evidence scopes must be `*` or one of the router's supported task classes.
+Unknown classes and misspellings reject the document during loading or import.
+Transfer tier and quality comparisons use exact decimal rationals; displayed
+quality values retain the ordinary catalog representation.
 
 Hosted overlay-v1 loading remains available. New local rows cannot be patched
 through it, even for cost only. Store local documents privately according to

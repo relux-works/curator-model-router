@@ -303,20 +303,18 @@ func selectCandidates(in Request, legacyReplay bool) (Recommendation, error) {
 			row.Quality = Quality{}
 			candidate, ok := admittedCandidates[row.Key()]
 			if ok {
-				if row.WeightsID != "" && row.WeightsID != candidate.WeightsID {
-					localReason = "weights_identity_mismatch"
-				} else if row.Reasoning != nil && (candidate.Reasoning == nil || *row.Reasoning != *candidate.Reasoning) {
-					localReason = "quality_context_mismatch"
-				} else if in.LocalCapability != nil {
+				row.Candidate, localReason = mergeLocalCandidate(row.Candidate, candidate)
+				if localReason == "" && in.LocalCapability != nil {
 					var err error
+					// Resolve admission itself: catalog guards cannot supply a
+					// missing independently admitted identity, pin or context.
 					row.Quality, localRating, localReason, err = localDoc.resolve(candidate, in.Task.TaskClass, in.Usage.AsOf, in.LocalCapability.ID)
 					if err != nil {
 						return r, err
 					}
-				} else if in.SchemaVersion == LocalRequestVersion {
+				} else if localReason == "" && in.SchemaVersion == LocalRequestVersion {
 					localReason = "weights_unrated"
 				}
-				row.Candidate = candidate
 			}
 		}
 		q := taskQuality(row, in.Task.TaskClass)
@@ -326,15 +324,11 @@ func selectCandidates(in Request, legacyReplay bool) (Recommendation, error) {
 			tierPolicy.TierEdges = in.Policy.ReviewTierEdges
 			tierQ = q
 		}
+		tier := TierFor(tierQ, tierPolicy)
 		if localRating != nil && localRating.Path == "base_quantization_transfer" && q != nil {
-			copyQ := *q
-			copyQ.Value = localRating.SelectionValue.number()
-			// TierFor already subtracts stderr for historical scores; the
-			// transferred selection value contains its complete 2*stderr penalty.
-			copyQ.Stderr = nil
-			tierQ = &copyQ
+			tier = localTransferTier(localRating.SelectionValue, tierPolicy)
 		}
-		x := CandidateExplanation{RankedCandidate: RankedCandidate{LocalRating: localRating, Candidate: row.Candidate, Family: row.Family, Billing: row.Billing, Tier: TierFor(tierQ, tierPolicy), Quality: q, QualityIndex: index, Cost: row.Cost, ReasonCodes: []string{}}, Admitted: admitted[row.Key()]}
+		x := CandidateExplanation{RankedCandidate: RankedCandidate{LocalRating: localRating, Candidate: row.Candidate, Family: row.Family, Billing: row.Billing, Tier: tier, Quality: q, QualityIndex: index, Cost: row.Cost, ReasonCodes: []string{}}, Admitted: admitted[row.Key()]}
 		if !x.Admitted {
 			reason(&x, "not_admitted")
 		}
@@ -729,15 +723,13 @@ func rankedQualityCompare(a, b RankedCandidate) int {
 	if c := qualitySourceCompare(a, b); c != 0 {
 		return c
 	}
-	return qualityCompare(selectionQuality(a), selectionQuality(b))
-}
-func selectionQuality(c RankedCandidate) *QualityValue {
-	if c.Quality == nil || c.LocalRating == nil || c.LocalRating.Path != "base_quantization_transfer" {
-		return c.Quality
+	if a.Quality == nil || b.Quality == nil {
+		return qualityCompare(a.Quality, b.Quality)
 	}
-	q := *c.Quality
-	q.Value = c.LocalRating.SelectionValue.number()
-	return &q
+	if isLocalTransfer(a) || isLocalTransfer(b) {
+		return selectionQualityRat(b).Cmp(selectionQualityRat(a))
+	}
+	return qualityCompare(a.Quality, b.Quality)
 }
 func costAxis(c Cost) (string, float64) {
 	if c.USDPerTask != nil {
