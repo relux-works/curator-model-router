@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/relux-works/curator-model-router/internal/subprocess"
 	"github.com/relux-works/skill-agents-management/pkg/providerquota"
 )
 
@@ -36,14 +37,14 @@ func Execute(parent context.Context, p providerquota.QuotaPlan, scratchRoot stri
 	cmd.Dir = cwd
 	cmd.Env = p.Env
 	cmd.Stderr = io.Discard
-	cmd.WaitDelay = time.Second
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, providerquota.Refuse("read_failure")
 	}
 	out := &protocolOutput{plan: p, stdin: stdin}
 	cmd.Stdout = out
-	if err = cmd.Start(); err != nil {
+	child, err := subprocess.Start(ctx, cmd)
+	if err != nil {
 		stdin.Close()
 		return nil, providerquota.Refuse("read_failure")
 	}
@@ -53,7 +54,7 @@ func Execute(parent context.Context, p providerquota.QuotaPlan, scratchRoot stri
 	if !p.HoldStdinOpen {
 		stdin.Close()
 	}
-	waitErr := cmd.Wait()
+	waitErr := child.Wait()
 	stdin.Close()
 	out.mu.Lock()
 	defer out.mu.Unlock()

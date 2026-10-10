@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/relux-works/curator-model-router/internal/subprocess"
 	"github.com/relux-works/curator-model-router/pkg/recommend"
 	"github.com/relux-works/skill-agents-management/pkg/providerquota"
 )
@@ -82,11 +83,14 @@ func DiscoverWithOptions(parent context.Context, timeout time.Duration, file, ro
 		}
 		argv = append(argv, "q", q)
 		cmd := exec.CommandContext(ctx, binary, argv...)
-		cmd.WaitDelay = time.Second
 		var b limitedBuffer
 		cmd.Stdout = &b
 		cmd.Stderr = io.Discard
-		if err := cmd.Run(); err != nil {
+		child, err := subprocess.Start(ctx, cmd)
+		if err == nil {
+			err = child.Wait()
+		}
+		if err != nil {
 			if ctx.Err() != nil {
 				return preflight{}, &recommend.Refusal{Code: "preflight_timeout", Message: "spawn-preflight timed out"}
 			}

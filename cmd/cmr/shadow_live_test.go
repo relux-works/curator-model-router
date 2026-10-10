@@ -16,7 +16,7 @@ import (
 func TestShadowSlowAdvisoryNeverDelaysLaunch(t *testing.T) {
 	root := cliEnvironment(t)
 	policy := filepath.Join(root, "policy.toml")
-	if err := os.WriteFile(policy, []byte(""), 0600); err != nil {
+	if err := os.WriteFile(policy, []byte("budget_mode = 'economy'\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("LIVE_ROOT", root)
@@ -67,8 +67,53 @@ exec /bin/sleep 5
 		t.Fatal("argv changed", raw)
 	}
 	observation := readShadowObservations(t)[0]
-	if observation.CMRError == nil || observation.CMRError.Code != "advisory_timeout" || observation.TaskBoardExitCode != 23 || observation.TaskClass != "code.implement" || observation.OriginalTaskClass != "implementation" {
+	if observation.CMRError == nil || observation.CMRError.Code != "advisory_timeout" || observation.TaskBoardExitCode != 23 || observation.TaskClass != "code.implement" || observation.OriginalTaskClass != "implementation" || observation.Budget != "economy" {
 		t.Fatalf("%+v", observation)
+	}
+}
+
+func TestShadowPostExitGraceKeepsCompletedAdvisory(t *testing.T) {
+	root := cliEnvironment(t)
+	policy := filepath.Join(root, "policy.toml")
+	if err := os.WriteFile(policy, []byte("budget_mode = 'burn'\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("LIVE_ROOT", root)
+	script := `#!/bin/sh
+if [ "$1" = spawn ]; then
+ while [ ! -e "$LIVE_ROOT/query-started" ]; do /bin/sleep 0.01; done
+ : > "$LIVE_ROOT/child-exited"
+ exit 23
+fi
+: > "$LIVE_ROOT/query-started"
+while [ ! -e "$LIVE_ROOT/child-exited" ]; do /bin/sleep 0.01; done
+/bin/sleep 0.05
+exit 7
+`
+	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	var out, stderr bytes.Buffer
+	if code := run([]string{"spawn", "--mode", "shadow", "--policy", policy, "--task-class", "code", "--", "TASK", "--role=developer"}, &out, &stderr); code != 23 {
+		t.Fatal(code, stderr.String())
+	}
+	o := readShadowObservations(t)[0]
+	if o.CMRError == nil || o.CMRError.Code != "preflight_failed" || o.Budget != "burn" {
+		t.Fatalf("post-exit result lost: %+v", o)
+	}
+}
+
+func TestShadowErrorHasNoUnsavedDecisionReference(t *testing.T) {
+	for _, code := range []string{"advisory_timeout", "cmr_decision_write_failed"} {
+		record := recommend.DecisionRecord{DecisionID: "sha256:unsaved"}
+		o := newShadowObservation(recommendOptions{role: "developer", taskClass: "code"}, spawnArguments{}, recommend.DefaultPolicy(), record, &Refusal{Code: code}, 0, time.Now())
+		if o.DecisionID != nil || o.Agreement != "no_cmr_pick" {
+			t.Fatalf("referenced an unsaved decision: %+v", o)
+		}
+	}
+	o := newShadowObservation(recommendOptions{role: "developer", taskClass: "code"}, spawnArguments{}, recommend.Policy{}, recommend.DecisionRecord{}, &Refusal{Code: "advisory_timeout"}, 0, time.Now())
+	if o.Budget != "unknown" {
+		t.Fatalf("invented a policy budget: %+v", o)
 	}
 }
 

@@ -53,7 +53,11 @@ func TestShadowChildKeepsDefaultSigpipe(t *testing.T) {
 	cmd.Env = append(os.Environ(), "CMR_SIGPIPE_CHILD=2", "PATH="+root+":/usr/bin:/bin", "HOME="+root, "XDG_STATE_HOME="+root, "XDG_CONFIG_HOME="+root)
 	err := cmd.Run()
 	var exit *exec.ExitError
-	if !errors.As(err, &exit) || exit.ExitCode() == 23 {
-		t.Fatalf("task-board ignored SIGPIPE: %v", err)
+	if !errors.As(err, &exit) || exit.ExitCode() != 141 {
+		t.Fatalf("want task-board's SIGPIPE status 141, got %v", err)
+	}
+	t.Setenv("XDG_STATE_HOME", root)
+	if observation := readShadowObservations(t)[0]; observation.TaskBoardExitCode != 141 {
+		t.Fatalf("lost SIGPIPE status in observation: %+v", observation)
 	}
 }

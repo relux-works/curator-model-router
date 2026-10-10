@@ -196,11 +196,21 @@ preflight, selection, decision storage, or logging. An explicit `--mode shadow`
 also defers policy reads until after child startup. When mode comes from policy,
 reading that policy is necessary to determine execution mode before launching.
 Advisory work runs concurrently with its own deadline (`--advisory-timeout 60s`,
-60 seconds by default). If it is unfinished when the child exits, cmr cancels it
-and records `advisory_timeout` without waiting. A completed preflight timeout
+60 seconds by default). After the child exits, cmr gives unfinished advice up to
+250 milliseconds to finish, within its existing deadline. It then cancels remaining
+work and records `advisory_timeout`. Advisory subprocesses use separate process
+groups; cancellation terminates the entire group, allowing 100 milliseconds for
+graceful exit before force-killing it. Cleanup and reaping share a one-second bound
+before cmr returns. A completed preflight timeout
 retains `preflight_timeout`. Advisory output and observations are written after
 the child finishes, and the wrapper returns the child's status even on relay or
-storage failures. Fast launches may therefore produce timeout observations.
+storage failures. Signal termination uses the shell status `128 + signal` in both
+the wrapper and observation (SIGPIPE is 141, SIGTERM is 143). SIGINT and SIGTERM
+addressed to cmr are forwarded to the launched child. Timeout observations retain
+the loaded policy's budget, including an explicit `--budget` override; if policy
+loading has not completed, the budget is `unknown`. Failed advice never references
+an unsaved decision. Advice exceeding the grace period still produces a timeout
+observation.
 
 Shadow computes the advisory pick without locking to forwarded `--agent`, `--model`, or
 `--reasoning-effort`. Forwarded `--role` still defines admission, and conflicts with a different

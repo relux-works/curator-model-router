@@ -85,7 +85,7 @@ func newShadowObservation(o recommendOptions, parsed spawnArguments, policy reco
 	}
 	budget := policy.BudgetMode
 	if budget == "" {
-		budget = "balanced"
+		budget = "unknown"
 	}
 	if o.budget != "" {
 		budget = o.budget
@@ -95,10 +95,10 @@ func newShadowObservation(o recommendOptions, parsed spawnArguments, policy reco
 		budget = record.Inputs.Policy.BudgetMode
 	}
 	if budget == "" {
-		budget = "balanced"
+		budget = "unknown"
 	}
 	observation := shadowObservation{SchemaVersion: "shadow-observation-v1", Time: at.UTC(), OriginalTaskClass: o.taskClass, Role: task.Role, TaskClass: task.TaskClass, Difficulty: task.Difficulty, Sensitivity: task.Sensitivity, Budget: budget, TaskBoardExitCode: status}
-	if record.DecisionID != "" {
+	if record.DecisionID != "" && recErr == nil {
 		observation.DecisionID = &record.DecisionID
 	}
 	for _, dim := range []struct {

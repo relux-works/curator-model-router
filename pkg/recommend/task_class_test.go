@@ -30,7 +30,7 @@ func TestBoardTaskClassAliasesAndReplay(t *testing.T) {
 			if err != nil || again != task {
 				t.Fatal("normalization changed provenance", again, err)
 			}
-			decision, err := BuildDecision(Request{Catalog: cat, Policy: DefaultPolicy(), Task: task, Candidates: candidates, Usage: UsageSnapshot{AsOf: 1}})
+			decision, err := BuildDecision(Request{Catalog: cat, Policy: DefaultPolicy(), Task: task, Candidates: candidates, Usage: UsageSnapshot{AsOf: 1800000000}})
 			if err != nil {
 				t.Fatal(err)
 			}

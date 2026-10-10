@@ -25,14 +25,26 @@ func TestSpawnPreflightTargetsSameBoard(t *testing.T) {
 		{"remote-B", []string{"--remote", "https://example.invalid", "--remote-board=board-B", "--insecure=false"}, "gpt-6.1-sol", "high"},
 		{"literal-board-value", []string{"--board-dir", "--"}, "gpt-6.1-sol", "high"},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			root := cliEnvironment(t)
-			log := filepath.Join(root, "argv")
-			t.Setenv("FAKE_LOG", log)
-			// A different board has a different admitted pair. Default preflight is A.
-			script := `#!/bin/sh
+		for _, incomplete := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/incomplete=%t", tc.name, incomplete), func(t *testing.T) {
+				root := cliEnvironment(t)
+				log := filepath.Join(root, "argv")
+				t.Setenv("FAKE_LOG", log)
+				if incomplete {
+					t.Setenv("FAKE_INCOMPLETE", "1")
+				} else {
+					t.Setenv("FAKE_INCOMPLETE", "0")
+				}
+				// A different board has a different admitted pair. Default preflight is A.
+				script := `#!/bin/sh
 printf '%s\n' "$@" >> "$FAKE_LOG"
 [ "$1" = 'spawn' ] && exit 0
+if [ "$FAKE_INCOMPLETE" = 1 ]; then
+ case "$*" in
+ *agent=*) ;;
+ *) printf '%s\n' '{"enabled":true,"role":"developer","providers":{"allowed":["codex"]}}'; exit 0 ;;
+ esac
+fi
 model=gpt-6-astra
 effort=medium
 while [ "$#" -gt 0 ]; do
@@ -44,43 +56,51 @@ while [ "$#" -gt 0 ]; do
 done
 printf '{"enabled":true,"role":"developer","providers":{"allowed":["codex"],"target":"codex"},"resolved_role_ceiling":{"configured":true,"admitted_pairs":{"provider":"codex","models":[{"id":"%s","efforts":["%s"]}]}},"workload_class_recommendation":{"configured":true,"class_resolved":false,"unresolved_reason":"workload_class_derivation_input_required"}}\n' "$model" "$effort"
 `
-			if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
-				t.Fatal(err)
-			}
-			forwarded := append([]string{"TASK", "--background"}, tc.selectors...)
-			args := append([]string{"spawn", "--role", "developer", "--task-class", "code.implement", "--mode", "recommend", "--json", "--"}, forwarded...)
-			var out, stderr bytes.Buffer
-			if code := run(args, &out, &stderr); code != 0 {
-				t.Fatal(code, out.String(), stderr.String())
-			}
-			var result recommendOutput
-			if err := json.Unmarshal(out.Bytes(), &result); err != nil {
-				t.Fatal(err)
-			}
-			if result.Selected == nil || result.Selected.Model != tc.model || result.Selected.Effort != tc.effort {
-				t.Fatal("selected from wrong board", result.Selected)
-			}
-			logged, err := os.ReadFile(log)
-			if err != nil {
-				t.Fatal(err)
-			}
-			expected := "--no-update-check\n" + strings.Join(tc.selectors, "\n") + "\nq\n"
-			if strings.Count(string(logged), expected) != 2 {
-				t.Fatal("target missing from an initial/provider preflight", string(logged))
-			}
-			if !reflect.DeepEqual(result.Commands[0][2:2+len(forwarded)], forwarded) {
-				t.Fatal(result.Commands)
-			}
-			paths, _ := filepath.Glob(filepath.Join(cmrio.StateRoot(), "decisions", "*.json"))
-			data, _ := os.ReadFile(paths[0])
-			var record recommend.DecisionRecord
-			if err := json.Unmarshal(data, &record); err != nil || record.Inputs.Admission == nil || !reflect.DeepEqual(record.Inputs.Admission.BoardFlags, tc.selectors) {
-				t.Fatal(record.Inputs.Admission, err)
-			}
-			if err := record.VerifyContentID(); err != nil {
-				t.Fatal(err)
-			}
-		})
+				if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
+					t.Fatal(err)
+				}
+				forwarded := append([]string{"TASK", "--background"}, tc.selectors...)
+				args := append([]string{"spawn", "--role", "developer", "--task-class", "code.implement", "--mode", "recommend", "--json", "--"}, forwarded...)
+				var out, stderr bytes.Buffer
+				if code := run(args, &out, &stderr); code != 0 {
+					t.Fatal(code, out.String(), stderr.String())
+				}
+				var result recommendOutput
+				if err := json.Unmarshal(out.Bytes(), &result); err != nil {
+					t.Fatal(err)
+				}
+				if result.Selected == nil || result.Selected.Model != tc.model || result.Selected.Effort != tc.effort {
+					t.Fatal("selected from wrong board", result.Selected)
+				}
+				logged, err := os.ReadFile(log)
+				if err != nil {
+					t.Fatal(err)
+				}
+				expected := "--no-update-check\n" + strings.Join(tc.selectors, "\n") + "\nq\n"
+				queries := 1
+				if incomplete {
+					queries = 2
+					if !strings.Contains(string(logged), "project_config(view=spawn-preflight, role=developer, agent=codex)") {
+						t.Fatal("missing targeted fallback", string(logged))
+					}
+				}
+				if strings.Count(string(logged), expected) != queries {
+					t.Fatal("wrong query count or missing board target", string(logged))
+				}
+				if !reflect.DeepEqual(result.Commands[0][2:2+len(forwarded)], forwarded) {
+					t.Fatal(result.Commands)
+				}
+				paths, _ := filepath.Glob(filepath.Join(cmrio.StateRoot(), "decisions", "*.json"))
+				data, _ := os.ReadFile(paths[0])
+				var record recommend.DecisionRecord
+				if err := json.Unmarshal(data, &record); err != nil || record.Inputs.Admission == nil || !reflect.DeepEqual(record.Inputs.Admission.BoardFlags, tc.selectors) {
+					t.Fatal(record.Inputs.Admission, err)
+				}
+				if err := record.VerifyContentID(); err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
 	}
 }
 

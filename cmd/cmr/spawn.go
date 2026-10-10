@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/relux-works/curator-model-router/internal/cmrio"
+	"github.com/relux-works/curator-model-router/internal/subprocess"
 	"github.com/relux-works/curator-model-router/pkg/recommend"
 )
 
@@ -133,15 +134,32 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 	// arguments, reading advisory files, or querying preflight.
 	cmd := exec.Command(binary, append([]string{"spawn"}, forwarded...)...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, stdout, stderr
+	termination := make(chan os.Signal, 8)
+	signal.Notify(termination, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(termination)
 	if err := cmd.Start(); err != nil {
 		return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not execute task-board"}, o.json, stdout, stderr)
 	}
+	stopSignals := make(chan struct{})
+	signalsDone := make(chan struct{})
+	go func() {
+		defer close(signalsDone)
+		for {
+			select {
+			case sig := <-termination:
+				_ = cmd.Process.Signal(sig)
+			case <-stopSignals:
+				return
+			}
+		}
+	}()
 	timeout := o.advisoryTimeout
 	if timeout == 0 {
 		timeout = time.Minute
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	ctx, processes := subprocess.WithScope(ctx)
 	o.ctx, o.mode = ctx, "shadow"
 	type result struct {
 		record recommend.DecisionRecord
@@ -150,6 +168,7 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		err    error
 	}
 	done := make(chan result, 1)
+	resolvedPolicy := make(chan recommend.Policy, 1)
 	go func(o recommendOptions) {
 		r := result{policy: policy, err: policyErr}
 		if ctx.Err() != nil {
@@ -164,6 +183,8 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 			r.policy, r.err = cmrio.LoadPolicy(o.policy)
 		}
 		if r.err == nil {
+			// Publish immutable metadata before any slow preflight or quota work.
+			resolvedPolicy <- r.policy
 			o.loadedPolicy = &r.policy
 			r.record, r.parsed, r.err = spawnRecommendation(o, forwarded)
 		} else {
@@ -175,22 +196,55 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		done <- r
 	}(o)
 	_ = cmd.Wait()
-	// Completed child status is authoritative, including output relay failures.
-	if cmd.ProcessState == nil {
-		return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not wait for task-board"}, o.json, stdout, stderr)
-	}
-	status := cmd.ProcessState.ExitCode()
+	close(stopSignals)
+	<-signalsDone
 	var r result
+	// Fast children still get a useful observation when advice finishes shortly
+	// after them. The advisory's overall deadline remains authoritative.
+	grace := time.NewTimer(250 * time.Millisecond)
+	defer grace.Stop()
+	completed := false
 	select {
 	case r = <-done:
-	default:
-		// Do not wait for an advisory that outlives the launch. Its own context also
-		// bounds work while a long-running child remains active.
+		completed = true
+	case <-grace.C:
+	case <-ctx.Done():
+	}
+	if !completed {
+		// Prefer an already completed result when the timer and result are ready.
+		select {
+		case r = <-done:
+			completed = true
+		default:
+		}
+	}
+	if !completed {
 		r.policy = policy
 		r.parsed, _ = parseSpawnArgs(forwarded)
 		r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 	}
 	cancel()
+	// os.Exit follows run: cancellation alone is insufficient. Stop all owned
+	// groups and synchronize their waiters before returning, with a shared bound.
+	cleanup, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
+	defer cleanupCancel()
+	_ = processes.Close(cleanup)
+	if !completed {
+		select {
+		case <-done:
+		case <-cleanup.Done():
+		}
+		select {
+		case r.policy = <-resolvedPolicy:
+		default:
+		}
+	}
+	// Completed child status is authoritative, including output relay failures.
+	// Cleanup also completes on the exceptional path with no process state.
+	if cmd.ProcessState == nil {
+		return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not wait for task-board"}, o.json, stdout, stderr)
+	}
+	status := subprocess.ExitStatus(cmd.ProcessState)
 	var advisory bytes.Buffer
 	if r.err == nil {
 		_ = outputRecommendation(r.record, true, nil, "shadow", &advisory)
@@ -223,11 +277,11 @@ func executeSpawnCommandsWithStatus(binary string, commands [][]string, asJSON b
 			// Wait can return a relay error after a successful child. In shadow,
 			// completed child status is authoritative; a start failure has no state.
 			if preserveStatus && cmd.ProcessState != nil {
-				return cmd.ProcessState.ExitCode()
+				return subprocess.ExitStatus(cmd.ProcessState)
 			}
 			var exit *exec.ExitError
 			if errors.As(err, &exit) {
-				return exit.ExitCode()
+				return subprocess.ExitStatus(exit.ProcessState)
 			}
 			return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not execute task-board"}, asJSON, stdout, stderr)
 		}

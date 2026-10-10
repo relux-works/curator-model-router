@@ -311,7 +311,7 @@ func TestShadowReportEmptyInvalidAndOutputFailure(t *testing.T) {
 		want     int
 		contains string
 	}{
-		{"empty", []string{"shadow", "report", "--json"}, "", 0, `"top_divergences":[],"refusals":[],"fail_open_launches":[]`},
+		{"empty", []string{"shadow", "report", "--json"}, "", 0, `"top_divergences":[],"refusals":[],"fail_open_by_code":[],"fail_open_launches":[]`},
 		{"empty_since", []string{"shadow", "report", "--since=", "--json"}, "", 2, "cmr_invalid_arguments"},
 		{"bad_since", []string{"shadow", "report", "--since", "yesterday", "--json"}, "", 2, "cmr_invalid_arguments"},
 		{"missing_since_value", []string{"shadow", "report", "--since", "--json"}, "", 2, "cmr_invalid_arguments"},
