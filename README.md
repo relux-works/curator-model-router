@@ -63,7 +63,7 @@ Exact local GGUF ratings use independently pinned `weights_id`, thinking context
 and an operator `local-capability-v1` document. Applicable exact measurements
 precede base-score transfers with explicit uncertainty. Import keyless public
 exports using `cmr local import-base --input FILE`; validate operator coefficients
-using `cmr local coefficients --input FILE`. See the [local capability guide](docs/local-capability.md).
+using `cmr local coefficients --input FILE`. See the [local capability guide](docs/local-capability.md) and the plain-language overview [Local models: exact weights and their ratings](docs/local-weights.md) ([на русском](docs/local-weights.ru.md)).
 The library ships no production coefficients or new third-party rating numbers.
 
 Module license: [Apache-2.0](LICENSE), copyright Relux Works. Benchmark data retains its upstream terms described in NOTICE.
