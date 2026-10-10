@@ -91,8 +91,10 @@ func newShadowObservation(o recommendOptions, parsed spawnArguments, policy reco
 		budget = o.budget
 	}
 	if record.SchemaVersion != "" {
+		// A frozen decision states the effective budget, including the
+		// legacy empty wire value that means balanced.
 		task = record.Inputs.Task
-		budget = record.Inputs.Policy.BudgetMode
+		budget = record.Inputs.Policy.EffectiveBudgetMode()
 	}
 	if budget == "" {
 		budget = "unknown"
