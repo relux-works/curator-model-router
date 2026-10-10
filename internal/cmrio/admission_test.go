@@ -60,7 +60,7 @@ func TestPreflightAuthority(t *testing.T) {
 		t.Fatal(candidates, source, err)
 	}
 	logBytes, _ := os.ReadFile(log)
-	if !strings.Contains(string(logBytes), "--no-update-check\nq\nproject_config(view=spawn-preflight, role=developer, agent=codex)") {
+	if !strings.Contains(string(logBytes), "--no-update-check\nq\nproject_config(view=spawn-preflight, role=developer)") {
 		t.Fatalf("argv: %s", logBytes)
 	}
 	var wire map[string]any

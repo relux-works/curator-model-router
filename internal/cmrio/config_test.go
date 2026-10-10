@@ -105,3 +105,22 @@ func TestConfigPrecedence(t *testing.T) {
 		t.Fatal(catalog, err)
 	}
 }
+
+func TestPreparePolicyFreezesModeAndDefersValidation(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "policy.toml")
+	if err := os.WriteFile(path, []byte("mode = 'shadow'\nfanout_k = ["), 0600); err != nil {
+		t.Fatal(err)
+	}
+	mode, load := PreparePolicy(path)
+	if mode != "shadow" {
+		t.Fatal(mode)
+	}
+	if err := os.WriteFile(path, []byte("mode = 'select'"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	policy, err := load()
+	if err == nil || policy.Mode != "shadow" {
+		t.Fatal("deferred loader did not freeze the source", policy, err)
+	}
+}

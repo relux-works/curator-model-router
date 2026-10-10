@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
 	"regexp"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/relux-works/curator-model-router/pkg/recommend"
@@ -24,6 +26,20 @@ func admissionError(message string) error {
 // Discover never falls back after task-board is found: an empty or broken
 // authority must not be widened to the PATH catalog.
 func Discover(file, role, agent string, catalog recommend.Catalog, contexts ...*recommend.AdmissionContext) ([]recommend.Candidate, string, error) {
+	return DiscoverWithOptions(context.Background(), 0, file, role, agent, catalog, contexts...)
+}
+
+// DiscoverWithOptions bounds the complete preflight, including capped fallback
+// queries. Cancellation never widens authority to the PATH catalog.
+func DiscoverWithOptions(parent context.Context, timeout time.Duration, file, role, agent string, catalog recommend.Catalog, contexts ...*recommend.AdmissionContext) ([]recommend.Candidate, string, error) {
+	if timeout == 0 {
+		timeout = time.Minute
+	}
+	if timeout < 0 {
+		return nil, "", admissionError("invalid preflight timeout")
+	}
+	ctx, cancel := context.WithTimeout(parent, timeout)
+	defer cancel()
 	var admission *recommend.AdmissionContext
 	if len(contexts) != 0 {
 		admission = contexts[0]
@@ -55,8 +71,6 @@ func Discover(file, role, agent string, catalog recommend.Catalog, contexts ...*
 		return nil, "", admissionError("unsafe role or agent query value")
 	}
 	query := func(a string) (preflight, error) {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
 		q := "project_config(view=spawn-preflight, role=" + role
 		if a != "" {
 			q += ", agent=" + a
@@ -72,8 +86,11 @@ func Discover(file, role, agent string, catalog recommend.Catalog, contexts ...*
 		var b limitedBuffer
 		cmd.Stdout = &b
 		cmd.Stderr = io.Discard
-		if cmd.Run() != nil {
-			return preflight{}, admissionError("spawn-preflight failed")
+		if err := cmd.Run(); err != nil {
+			if ctx.Err() != nil {
+				return preflight{}, &recommend.Refusal{Code: "preflight_timeout", Message: "spawn-preflight timed out"}
+			}
+			return preflight{}, &recommend.Refusal{Code: "preflight_failed", Message: "spawn-preflight failed"}
 		}
 		return decodePreflight(b.Bytes())
 	}
@@ -88,37 +105,76 @@ func Discover(file, role, agent string, catalog recommend.Catalog, contexts ...*
 		}
 		agents = []string{agent}
 	}
-	out := []recommend.Candidate{}
+	if first.Role != role {
+		return nil, "", admissionError("spawn-preflight role mismatch")
+	}
+	if !*first.Enabled || len(agents) == 0 {
+		return []recommend.Candidate{}, "spawn-preflight", nil
+	}
 	for _, a := range agents {
 		if !queryName.MatchString(a) {
 			return nil, "", admissionError("unsafe allowed agent query value")
 		}
-		p := first
-		if agent == "" || a != first.Providers.Target {
-			p, err = query(a)
-			if err != nil {
-				return nil, "", err
-			}
+	}
+	results := make([]preflight, len(agents))
+	errs := make([]error, len(agents))
+	jobs := make(chan int, len(agents))
+	for i, a := range agents {
+		// The role-only response often already contains one provider's complete
+		// authority. Reuse it; never infer another provider's ceiling from it.
+		if first.hasProviderAdmission(a) {
+			results[i] = first
+		} else if agent != "" {
+			errs[i] = admissionError("missing provider admission data")
+		} else {
+			jobs <- i
 		}
-		if p.Providers.Target != a || p.Role != role {
-			return nil, "", admissionError("spawn-preflight target mismatch")
+	}
+	close(jobs)
+	var workers sync.WaitGroup
+	for range min(4, len(jobs)) {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for i := range jobs {
+				results[i], errs[i] = query(agents[i])
+			}
+		}()
+	}
+	workers.Wait()
+	// Prefer a timeout over other failures; otherwise provider order determines
+	// the refusal and output, independent of goroutine scheduling.
+	for _, err := range errs {
+		var r *recommend.Refusal
+		if errors.As(err, &r) && r.Code == "preflight_timeout" {
+			return nil, "", err
+		}
+	}
+	out := []recommend.Candidate{}
+	rationales := map[string]bool{}
+	for i, a := range agents {
+		if errs[i] != nil {
+			return nil, "", errs[i]
+		}
+		p := results[i]
+		if p.Providers.Target != a || p.Role != role || p.Ceiling == nil || p.Ceiling.Configured == nil {
+			return nil, "", admissionError("spawn-preflight target mismatch or missing ceiling")
 		}
 		pairs, err := p.candidates(a, catalog)
 		if err != nil {
 			return nil, "", err
 		}
-		if admission != nil {
-			required, err := p.rationaleRequired()
-			if err != nil {
-				return nil, "", err
-			}
-			if admission.RationaleRequired == nil {
-				admission.RationaleRequired = map[string]bool{}
-			}
-			admission.RationaleRequired[a] = required
+		required, err := p.rationaleRequired()
+		if err != nil {
+			return nil, "", err
 		}
+		rationales[a] = required
 		out = append(out, pairs...)
 	}
+	if admission != nil {
+		admission.RationaleRequired = rationales
+	}
+
 	return out, "spawn-preflight", nil
 }
 
@@ -177,8 +233,11 @@ func decodePreflight(b []byte) (preflight, error) {
 		return preflight{}, admissionError("null workload authority")
 	}
 	var p preflight
-	if json.Unmarshal(b, &p) != nil || p.Enabled == nil || p.Providers.Allowed == nil || p.Providers.Target == "" || p.Ceiling == nil || p.Ceiling.Configured == nil {
+	if json.Unmarshal(b, &p) != nil || p.Enabled == nil || p.Providers.Allowed == nil {
 		return p, admissionError("invalid spawn-preflight JSON")
+	}
+	if raw, exists := fields["resolved_role_ceiling"]; exists && (bytes.Equal(bytes.TrimSpace(raw), []byte("null")) || p.Ceiling == nil || p.Ceiling.Configured == nil) {
+		return p, admissionError("invalid role ceiling authority")
 	}
 	if p.Workload != nil {
 		if json.Unmarshal(fields["workload_class_recommendation"], &p.workloadFields) != nil {
@@ -187,8 +246,24 @@ func decodePreflight(b []byte) (preflight, error) {
 	}
 	return p, nil
 }
+
+// A role-only envelope can omit provider admission. Such omissions require a
+// targeted query; present but invalid authority is still validated fail-closed.
+func (p preflight) hasProviderAdmission(agent string) bool {
+	if p.Providers.Target != agent || p.Ceiling == nil || p.Ceiling.Configured == nil {
+		return false
+	}
+	if *p.Ceiling.Configured {
+		return p.Ceiling.Admitted != nil && p.Ceiling.Admitted.Provider == agent && p.Ceiling.Admitted.Models != nil && p.Workload != nil
+	}
+	return true
+}
+
 func (p preflight) candidates(agent string, catalog recommend.Catalog) ([]recommend.Candidate, error) {
 	out := []recommend.Candidate{}
+	if p.Enabled == nil || p.Ceiling == nil || p.Ceiling.Configured == nil {
+		return nil, admissionError("missing provider admission data")
+	}
 	if !*p.Enabled || !slices.Contains(p.Providers.Allowed, agent) {
 		return out, nil
 	}

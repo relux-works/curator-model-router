@@ -46,6 +46,18 @@ cmr spawn --task-class review.code --story "<STORY-ID>" --policy ~/.curator/rout
 
 Put the task brief, scope, acceptance criteria, and precondition resources on the board task before spawning. Task-board builds the agent prompt from the role template and that board state; `--instruction RESOURCE` selects a precondition resource.
 
+Measure routing divergence during a week of shadow before switching to select:
+
+```sh
+cmr spawn --task-class code.implement --mode shadow -- TASK --role developer --agent codex --model gpt-6.1-sol --reasoning-effort high --background
+cmr shadow report
+cmr shadow report --since 2026-10-07T00:00:00Z --json
+```
+
+Shadow compares its advisory pick against the explicit caller pair and launches the caller's
+arguments unchanged. Report comparisons exclude board defaults and show refusals and advisory
+FAIL-OPEN launches separately. Observations live beside decision logs under the XDG state root.
+
 See [the integration guide](docs/integration.md) for policy defaults, catalog and admission overrides, modes, and usage caching.
 
 Spending policy `budget_mode` defaults to `balanced`. Use `--budget economy` for the cheapest

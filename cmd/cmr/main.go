@@ -27,6 +27,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runRecommend(args[1:], stdout, stderr)
 	case "usage":
 		return runUsage(args[1:], stdout, stderr)
+	case "shadow":
+		return runShadow(args[1:], stdout, stderr)
 	case "spawn":
 		return runSpawn(args[1:], stdout, stderr)
 	case "route":
@@ -54,7 +56,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 func hasJSON(args []string) bool {
 	// This is also used on invalid-input paths. Known value options still consume
 	// a token, so a value named --json never changes the output channel.
-	valueFlags := strings.Fields("provider local-capability catalog-overlay budget role task-class difficulty language agent model reasoning-effort catalog policy candidates platform host story producer-family exclude mode store registry importer imported-at mapping runtime ttl input decision snapshot derivation project-reqs evaluated-at reason author kind scope text id file efforts harness-version-range statement polarity categories languages platforms roles basis confidence author-kind created-at review-by supersedes evidence-ref at")
+	valueFlags := strings.Fields("provider local-capability catalog-overlay budget role task-class difficulty language agent model reasoning-effort catalog policy candidates platform host story producer-family exclude mode store registry importer imported-at mapping runtime ttl input decision snapshot derivation project-reqs evaluated-at reason author kind scope text id file efforts harness-version-range statement polarity categories languages platforms roles basis confidence author-kind created-at review-by supersedes evidence-ref at since preflight-timeout advisory-timeout")
 	asJSON := false
 	for i := 0; i < len(args); i++ {
 		if args[i] == "--" {

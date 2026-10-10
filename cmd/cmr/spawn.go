@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/relux-works/curator-model-router/internal/cmrio"
 	"github.com/relux-works/curator-model-router/pkg/recommend"
@@ -35,17 +37,31 @@ func runSpawn(args []string, stdout, stderr io.Writer) int {
 	forwarded := args[boundary+1:]
 	// Resolve execution mode before any advisory admission, task, or usage work.
 	// Freeze the policy once so recommendation cannot observe a different mode.
-	policy, policyErr := cmrio.LoadPolicy(o.policy)
+	// An explicit shadow flag needs no policy IO before the child's Start.
+	var policy recommend.Policy
+	var policyErr error
 	mode := o.mode
 	if mode == "" {
-		mode = string(policy.Mode)
+		hint, load := cmrio.PreparePolicy(o.policy)
+		mode = string(hint)
+		if mode == "shadow" {
+			o.policyLoader = load
+			policy.Mode = hint
+		} else {
+			policy, policyErr = load()
+		}
+	} else if mode != "shadow" {
+		policy, policyErr = cmrio.LoadPolicy(o.policy)
 	}
+
 	if mode == "shadow" {
 		// A write to a closed stdout/stderr pipe would otherwise kill cmr with
 		// SIGPIPE before the caller's launch; shadow must stay fail-open.
 		// Catching (not ignoring) keeps the default disposition for task-board:
 		// caught signals reset to default on exec, ignored ones would not.
-		signal.Notify(make(chan os.Signal, 1), syscall.SIGPIPE)
+		sigpipe := make(chan os.Signal, 1)
+		signal.Notify(sigpipe, syscall.SIGPIPE)
+		defer signal.Stop(sigpipe)
 		return runShadowSpawn(o, forwarded, policy, policyErr, stdout, stderr)
 	}
 	if policyErr != nil {
@@ -87,11 +103,15 @@ func spawnRecommendation(o recommendOptions, forwarded []string) (recommend.Deci
 	if err != nil {
 		return recommend.DecisionRecord{}, parsed, err
 	}
-	// Caller flags are locks, including flags after positional spawn arguments.
+	// Forwarded role always defines admission. Selection flags are locks in
+	// select/recommend, including flags after positional spawn arguments.
 	for _, x := range []struct {
 		name   string
 		target *string
 	}{{"agent", &o.agent}, {"model", &o.model}, {"reasoning-effort", &o.effort}, {"role", &o.role}} {
+		if o.mode == "shadow" && x.name != "role" {
+			continue // Only cmr-side selection flags constrain the advisory pick.
+		}
 		if v, ok := parsed.locks[x.name]; ok {
 			if *x.target != "" && *x.target != v && !(x.name == "model" && canonicalModel(*x.target) == canonicalModel(v)) {
 				return recommend.DecisionRecord{}, parsed, &Refusal{Code: "cmr_invalid_arguments", Message: "conflicting --" + x.name}
@@ -109,24 +129,82 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 	if err != nil {
 		return writeRefusal(&Refusal{Code: "cmr_task_board_unavailable", Message: "task-board is not on PATH"}, o.json, stdout, stderr)
 	}
-	var advisory bytes.Buffer
-	if policyErr == nil {
-		o.loadedPolicy = &policy
-		record, _, recErr := spawnRecommendation(o, forwarded)
-		if recErr == nil {
-			// recommendation already persisted the full replayable decision,
-			// including refusals. Also expose the would-be result on stderr.
-			_ = outputRecommendation(record, true, nil, "shadow", &advisory)
-		} else {
-			commandError(recErr, true, &advisory, io.Discard)
-		}
-	} else {
-		commandError(policyErr, true, &advisory, io.Discard)
+	// Start the real spawn with exactly the forwarded argv before parsing board
+	// arguments, reading advisory files, or querying preflight.
+	cmd := exec.Command(binary, append([]string{"spawn"}, forwarded...)...)
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, stdout, stderr
+	if err := cmd.Start(); err != nil {
+		return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not execute task-board"}, o.json, stdout, stderr)
 	}
-	// Even an unavailable decision log or stderr must not gate shadow launch.
+	timeout := o.advisoryTimeout
+	if timeout == 0 {
+		timeout = time.Minute
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	o.ctx, o.mode = ctx, "shadow"
+	type result struct {
+		record recommend.DecisionRecord
+		parsed spawnArguments
+		policy recommend.Policy
+		err    error
+	}
+	done := make(chan result, 1)
+	go func(o recommendOptions) {
+		r := result{policy: policy, err: policyErr}
+		if ctx.Err() != nil {
+			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+			done <- r
+			return
+		}
+		// An explicit shadow mode defers policy loading until after child startup.
+		if o.policyLoader != nil {
+			r.policy, r.err = o.policyLoader()
+		} else if policy.SchemaVersion == "" && policyErr == nil {
+			r.policy, r.err = cmrio.LoadPolicy(o.policy)
+		}
+		if r.err == nil {
+			o.loadedPolicy = &r.policy
+			r.record, r.parsed, r.err = spawnRecommendation(o, forwarded)
+		} else {
+			r.parsed, _ = parseSpawnArgs(forwarded)
+		}
+		if ctx.Err() != nil && r.err == nil {
+			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+		}
+		done <- r
+	}(o)
+	_ = cmd.Wait()
+	// Completed child status is authoritative, including output relay failures.
+	if cmd.ProcessState == nil {
+		return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not wait for task-board"}, o.json, stdout, stderr)
+	}
+	status := cmd.ProcessState.ExitCode()
+	var r result
+	select {
+	case r = <-done:
+	default:
+		// Do not wait for an advisory that outlives the launch. Its own context also
+		// bounds work while a long-running child remains active.
+		r.policy = policy
+		r.parsed, _ = parseSpawnArgs(forwarded)
+		r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+	}
+	cancel()
+	var advisory bytes.Buffer
+	if r.err == nil {
+		_ = outputRecommendation(r.record, true, nil, "shadow", &advisory)
+	} else {
+		commandError(r.err, true, &advisory, io.Discard)
+	}
+	// Write only after Wait so advisory and child never concurrently use writers.
 	_, _ = fmt.Fprintf(stderr, "cmr:shadow %s\n", strings.TrimSpace(advisory.String()))
-	commands := [][]string{append([]string{"task-board", "spawn"}, forwarded...)}
-	return executeSpawnCommandsWithStatus(binary, commands, o.json, stdout, stderr, true)
+	observation := newShadowObservation(o, r.parsed, r.policy, r.record, r.err, status, time.Now().UTC())
+	if err := appendShadowObservation(cmrio.StateRoot(), observation); err != nil {
+		_, _ = fmt.Fprintln(stderr, "cmr:shadow warning: could not append observation")
+	}
+
+	return status
 }
 
 func executeSpawnCommands(binary string, commands [][]string, asJSON bool, stdout, stderr io.Writer) int {

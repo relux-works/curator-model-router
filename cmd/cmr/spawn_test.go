@@ -15,7 +15,7 @@ func fakeTaskBoard(t *testing.T, root string) string {
 	t.Helper()
 	log := filepath.Join(root, "spawn-argv")
 	t.Setenv("FAKE_LOG", log)
-	script := "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$FAKE_LOG\"\nexit \"${FAKE_EXIT:-0}\"\n"
+	script := "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$FAKE_LOG\"\nif [ \"$1\" = spawn ]; then /bin/sleep 1; fi\nexit \"${FAKE_EXIT:-0}\"\n"
 	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
 		t.Fatal(err)
 	}

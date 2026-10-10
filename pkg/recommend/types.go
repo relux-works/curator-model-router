@@ -119,10 +119,12 @@ type DifficultyRule struct {
 }
 
 // Policy is TOML-free. Construct programmatic policies with DefaultPolicy.
-// Zero numeric/boolean overrides are values, except BurnFanOutCap whose zero
-// is the omitted-field sentinel for the default of four.
+// Zero numeric/boolean overrides are values, except BurnFanOutCap and
+// PreflightTimeoutSeconds whose zeros mean their documented defaults.
 type Policy struct {
-	CatalogOverlay string `json:"catalog_overlay,omitempty" toml:"catalog_overlay"`
+	// Zero means the command adapter default of 60 seconds.
+	PreflightTimeoutSeconds int    `json:"preflight_timeout_seconds,omitempty" toml:"preflight_timeout_seconds"`
+	CatalogOverlay          string `json:"catalog_overlay,omitempty" toml:"catalog_overlay"`
 	// Empty BudgetMode is the legacy wire representation of balanced, preserving
 	// the omitted balanced wire value. Use EffectiveBudgetMode to read it.
 	BudgetMode            string                    `json:"budget_mode,omitempty" toml:"budget_mode"`
@@ -142,12 +144,13 @@ type Policy struct {
 }
 
 type TaskProfile struct {
-	Role        string `json:"role" toml:"role"`
-	TaskClass   string `json:"task_class" toml:"task_class"`
-	Difficulty  string `json:"difficulty,omitempty" toml:"difficulty"`
-	Sensitivity string `json:"sensitivity,omitempty" toml:"sensitivity"`
-	Language    string `json:"language,omitempty" toml:"language"`
-	Pipeline    string `json:"pipeline,omitempty" toml:"pipeline"`
+	OriginalTaskClass string `json:"original_task_class,omitempty" toml:"original_task_class"`
+	Role              string `json:"role" toml:"role"`
+	TaskClass         string `json:"task_class" toml:"task_class"`
+	Difficulty        string `json:"difficulty,omitempty" toml:"difficulty"`
+	Sensitivity       string `json:"sensitivity,omitempty" toml:"sensitivity"`
+	Language          string `json:"language,omitempty" toml:"language"`
+	Pipeline          string `json:"pipeline,omitempty" toml:"pipeline"`
 	// Platform is an optional caller facet for constraints such as not_for: windows.
 	Platform string `json:"platform,omitempty" toml:"platform"`
 }

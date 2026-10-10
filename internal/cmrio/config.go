@@ -43,19 +43,35 @@ func LoadCatalog(path string) (recommend.Catalog, error) {
 	}
 	return recommend.LoadCatalog(b)
 }
-func LoadPolicy(path string) (recommend.Policy, error) {
+
+// PreparePolicy reads one frozen policy snapshot and extracts only its execution
+// mode. Full decoding/validation can then happen after a shadow child's Start.
+// An implicit missing policy yields defaults; an explicit missing policy refuses.
+func PreparePolicy(path string) (routing.Mode, func() (recommend.Policy, error)) {
 	explicit := path != ""
 	if !explicit {
 		path = filepath.Join(os.Getenv("HOME"), ".curator", "routing.toml")
 	}
 	b, err := os.ReadFile(path)
 	if !explicit && os.IsNotExist(err) {
-		return recommend.DefaultPolicy(), nil
+		return recommend.DefaultPolicy().Mode, func() (recommend.Policy, error) { return recommend.DefaultPolicy(), nil }
 	}
 	if err != nil {
-		return recommend.Policy{}, &recommend.Refusal{Code: recommend.InvalidPolicy, Message: "cannot read policy"}
+		return "", func() (recommend.Policy, error) {
+			return recommend.Policy{}, &recommend.Refusal{Code: recommend.InvalidPolicy, Message: "cannot read policy"}
+		}
 	}
-	return DecodePolicy(b, strings.EqualFold(filepath.Ext(path), ".json"))
+	asJSON := strings.EqualFold(filepath.Ext(path), ".json")
+	mode := rawPolicyMode(b, asJSON)
+	if mode == "" {
+		mode = recommend.DefaultPolicy().Mode
+	}
+	return mode, func() (recommend.Policy, error) { return DecodePolicy(b, asJSON) }
+}
+
+func LoadPolicy(path string) (recommend.Policy, error) {
+	_, load := PreparePolicy(path)
+	return load()
 }
 
 // rawPolicyMode reads only the top-level declaration, independently of strict

@@ -212,13 +212,19 @@ nothing on their behalf and passes through task-board's own refusal.
 The admitted set comes from, in order:
 1. `--candidates FILE`, a JSON list of `{runtime, model, effort}`;
 2. task-board's spawn-preflight for the role. `cmr` calls
-   `task-board q 'project_config(view=spawn-preflight, role=R, agent=A)'` for each allowed agent and reads
-   the admitted pairs;
+   `task-board --no-update-check q 'project_config(view=spawn-preflight, role=R)'` first, reuses its
+   provider authority when complete, and queries only missing providers concurrently (cap four).
+   All queries share the configurable 60-second deadline (`--preflight-timeout` or policy
+   `preflight_timeout_seconds`); failures distinguish `preflight_timeout` and `preflight_failed`;
 3. if neither is available, the catalog rows whose runtime binary is on `PATH`. In that case the decision
    says so.
 
+Board/workload aliases and their deterministic defaults are listed in
+`docs/integration.md#task-class-aliases`. Decisions retain `original_task_class`
+and mapped `task_class`; unknown classes remain `invalid_task`.
+
 Every recommendation is a subset of the admitted set. Locked values are respected (R7): if the caller passes
-`--agent`, `--model` or `--reasoning-effort`, the router only fills the rest.
+`--agent`, `--model` or `--reasoning-effort`, the router only fills the rest in select/recommend. Shadow advisory decisions ignore forwarded selection locks; cmr-side locks still apply and forwarded role still defines admission.
 
 ## 5. Usage facts (quota)
 
@@ -265,6 +271,17 @@ Modes, set by `--mode` or the policy:
   an unreadable policy supplies no mode and select/recommend refuse. Explicit
   `--mode shadow` always launches. Shadow preserves the completed child’s exit
   status even if copying stdout or stderr fails; failure to start still refuses.
+  Start the caller's exact spawn argv before advisory work and compute concurrently.
+  Advisory work has a 60-second deadline (`--advisory-timeout`); unfinished work at
+  child exit is canceled and recorded as `advisory_timeout`, without waiting.
+  An explicit shadow flag also defers policy IO until after startup.
+  Append a `shadow-observation-v1` JSON line after completion, comparing the
+  unconstrained advisory pick to explicit forwarded selection flags. Missing
+  caller dimensions remain null and yield `unknown_caller_default`, never agreement.
+  Observation-write failures warn without changing status. `cmr shadow report`
+  (`--since RFC3339`, `--json`) aggregates divergence groups and lists advisory
+  errors separately as FAIL-OPEN launches, grouped by code. Stable observation/report schemas and
+  comparison denominators are documented in `docs/integration.md`.
 
 On `no_qualified_candidate`, select/recommend refuse and never launch anything;
 shadow still forwards the original launch.

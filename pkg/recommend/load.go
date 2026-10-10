@@ -256,6 +256,9 @@ func (c Catalog) Validate() error {
 	return nil
 }
 func (p Policy) Validate() error {
+	if p.PreflightTimeoutSeconds < 0 || p.PreflightTimeoutSeconds > 86400 {
+		return refuse(InvalidPolicy, "preflight_timeout_seconds must be between 0 and 86400")
+	}
 	if p.SchemaVersion != PolicyVersion {
 		return refuse(InvalidPolicy, "unknown policy schema_version")
 	}
@@ -309,12 +312,51 @@ func (p Policy) Validate() error {
 func validTaskClass(class string) bool {
 	return slices.Contains([]string{"code.implement", "code.fix", "code.refactor", "code.test", "review.code", "review.spec", "docs.write", "research", "planning", "orchestration", "tool-use", "ops", "routine"}, class)
 }
+
+// MapTaskClass translates board and workload vocabulary without guessing task content.
+// Use explicit review.spec when board-content context is unavailable; operations
+// uses the known orchestrator role when supplied.
+func MapTaskClass(class string, roles ...string) string {
+	switch class {
+	case "implementation", "code", "unified":
+		return "code.implement"
+	case "debugging":
+		return "code.fix"
+	case "testing":
+		return "code.test"
+	case "migration":
+		return "code.refactor"
+	case "review":
+		return "review.code"
+	case "documentation", "docs":
+		return "docs.write"
+	case "architecture":
+		return "planning"
+	case "mechanical", "metadata":
+		return "routine"
+	case "operations":
+		if len(roles) != 0 && roles[0] == "orchestrator" {
+			return "orchestration"
+		}
+		return "ops"
+	default:
+		return class
+	}
+}
 func (t TaskProfile) Normalize() (TaskProfile, error) {
 	if t.Role == "" {
 		return t, refuse(InvalidTask, "role is required")
 	}
+	original := t.TaskClass
+	t.TaskClass = MapTaskClass(original, t.Role)
 	if !validTaskClass(t.TaskClass) {
-		return t, refuse(InvalidTask, "unknown task_class")
+		return t, refuse(InvalidTask, fmt.Sprintf("unknown class %q", original))
+	}
+	if t.OriginalTaskClass == "" && original != t.TaskClass {
+		t.OriginalTaskClass = original
+	}
+	if t.OriginalTaskClass != "" && MapTaskClass(t.OriginalTaskClass, t.Role) != t.TaskClass {
+		return t, refuse(InvalidTask, "original task class does not match mapped class")
 	}
 	if t.Difficulty == "" {
 		switch t.TaskClass {

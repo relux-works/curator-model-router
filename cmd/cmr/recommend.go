@@ -25,6 +25,9 @@ func (s *repeatedStrings) String() string     { return strings.Join(*s, ",") }
 func (s *repeatedStrings) Set(v string) error { *s = append(*s, v); return nil }
 
 type recommendOptions struct {
+	policyLoader                                                                                            func() (recommend.Policy, error)
+	ctx                                                                                                     context.Context
+	preflightTimeout, advisoryTimeout                                                                       time.Duration
 	admission                                                                                               *recommend.AdmissionContext
 	loadedPolicy                                                                                            *recommend.Policy
 	role, taskClass, difficulty, language, platform, agent, model, effort                                   string
@@ -47,6 +50,10 @@ func recommendFlagSet(name string, spawn bool, o *recommendOptions) *flag.FlagSe
 	} {
 		f.StringVar(x.target, x.name, "", "")
 	}
+	f.DurationVar(&o.preflightTimeout, "preflight-timeout", 0, "")
+	if spawn {
+		f.DurationVar(&o.advisoryTimeout, "advisory-timeout", time.Minute, "")
+	}
 	f.BoolVar(&o.delicate, "delicate", false, "")
 	f.BoolVar(&o.fanout, "fanout", false, "")
 	f.BoolVar(&o.refresh, "refresh", false, "")
@@ -63,6 +70,15 @@ func recommendFlags(name string, args []string, spawn bool) (recommendOptions, e
 	f := recommendFlagSet(name, spawn, &o)
 	if err := f.Parse(args); err != nil || f.NArg() != 0 {
 		return o, &Refusal{Code: "cmr_invalid_arguments", Message: "invalid " + name + " flags"}
+	}
+	invalidTimeout := false
+	f.Visit(func(option *flag.Flag) {
+		if option.Name == "preflight-timeout" && o.preflightTimeout <= 0 || option.Name == "advisory-timeout" && o.advisoryTimeout <= 0 {
+			invalidTimeout = true
+		}
+	})
+	if invalidTimeout || o.preflightTimeout < 0 || o.preflightTimeout > 24*time.Hour || o.advisoryTimeout < 0 || o.advisoryTimeout > 24*time.Hour {
+		return o, &Refusal{Code: "cmr_invalid_arguments", Message: "timeouts must be positive and at most 24h"}
 	}
 	if o.budget != "" && o.budget != "economy" && o.budget != "balanced" && o.budget != "burn" {
 		return o, &Refusal{Code: "cmr_invalid_arguments", Message: "budget must be economy, balanced or burn"}
@@ -91,7 +107,7 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 	if o.platform == "" {
 		o.platform = runtime.GOOS
 	}
-	task := recommend.TaskProfile{Platform: o.platform, Role: o.role, TaskClass: o.taskClass, Difficulty: o.difficulty, Language: o.language}
+	task := recommend.TaskProfile{Platform: o.platform, Role: o.role, TaskClass: o.taskClass, OriginalTaskClass: o.taskClass, Difficulty: o.difficulty, Language: o.language}
 	if o.delicate {
 		task.Sensitivity = "delicate"
 	}
@@ -167,7 +183,15 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 			requestVersion = recommend.LocalRequestVersion
 		}
 	}
-	candidates, source, err := cmrio.Discover(o.candidates, o.role, o.agent, catalog, o.admission)
+	ctx := o.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	timeout := o.preflightTimeout
+	if timeout == 0 && policy.PreflightTimeoutSeconds != 0 {
+		timeout = time.Duration(policy.PreflightTimeoutSeconds) * time.Second
+	}
+	candidates, source, err := cmrio.DiscoverWithOptions(ctx, timeout, o.candidates, o.role, o.agent, catalog, o.admission)
 	if err != nil {
 		return recommend.DecisionRecord{}, err
 	}
@@ -192,7 +216,7 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 			if _, err := quota.System(c.Runtime); err != nil {
 				continue
 			}
-			if _, err := quota.Refresh(context.Background(), root, c.Runtime, env, time.Now().UTC(), 10*time.Minute); err != nil {
+			if _, err := quota.Refresh(ctx, root, c.Runtime, env, time.Now().UTC(), 10*time.Minute); err != nil {
 				return recommend.DecisionRecord{}, err
 			}
 		}
@@ -208,6 +232,9 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 		Locks: recommend.Locks{Agent: o.agent, Model: o.model, Effort: o.effort}, Usage: quota.Project(records, catalog, asOf)})
 	if err != nil {
 		return record, err
+	}
+	if err := ctx.Err(); err != nil {
+		return record, &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 	}
 	if err = cmrio.SaveDecision(root, record); err != nil {
 		return record, &Refusal{Code: "cmr_decision_write_failed", Message: "cannot store decision"}

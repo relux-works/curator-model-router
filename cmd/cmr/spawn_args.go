@@ -34,7 +34,7 @@ type spawnArguments struct {
 func parseSpawnArgs(args []string) (spawnArguments, error) {
 	p := spawnArguments{locks: map[string]string{}, injectionIndex: len(args)}
 	invalid := func(message string) (spawnArguments, error) {
-		return spawnArguments{}, &Refusal{Code: "cmr_invalid_arguments", Message: message}
+		return p, &Refusal{Code: "cmr_invalid_arguments", Message: message}
 	}
 	for i := 0; i < len(args); i++ {
 		a := args[i]
