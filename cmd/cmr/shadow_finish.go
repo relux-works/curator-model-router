@@ -74,26 +74,51 @@ func runShadowFinish(args []string, _, _ io.Writer) int {
 		return 2
 	}
 	forwarded := args[boundary+1:]
+	// Hard lifetime bound: context cancellation cannot interrupt blocking file IO
+	// (for example a policy path that is a FIFO without a writer).
+	watchdog := time.AfterFunc(o.advisoryTimeout+5*time.Second, func() { os.Exit(124) })
+	defer watchdog.Stop()
 	ctx, cancel := context.WithTimeout(context.Background(), o.advisoryTimeout)
 	defer cancel()
 	ctx, processes := subprocess.WithScope(ctx)
 	o.ctx, o.mode = ctx, "shadow"
-	var record recommend.DecisionRecord
-	var parsed spawnArguments
-	policy, recErr := cmrio.LoadPolicy(o.policy)
-	if recErr == nil {
-		o.loadedPolicy = &policy
-		record, parsed, recErr = spawnRecommendation(o, forwarded)
-		if ctx.Err() != nil && recErr == nil {
-			recErr = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+	type result struct {
+		record recommend.DecisionRecord
+		parsed spawnArguments
+		policy recommend.Policy
+		err    error
+	}
+	done := make(chan result, 1)
+	go func(o recommendOptions) {
+		var r result
+		r.policy, r.err = cmrio.LoadPolicy(o.policy)
+		if r.err == nil {
+			o.loadedPolicy = &r.policy
+			r.record, r.parsed, r.err = spawnRecommendation(o, forwarded)
+		} else {
+			r.parsed, _ = parseSpawnArgs(forwarded)
 		}
-	} else {
-		parsed, _ = parseSpawnArgs(forwarded)
+		done <- r
+	}(o)
+	var r result
+	select {
+	case r = <-done:
+		if ctx.Err() != nil && r.err == nil {
+			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+		}
+	case <-ctx.Done():
+		select {
+		case r = <-done:
+		default:
+			r.parsed, _ = parseSpawnArgs(forwarded)
+			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+		}
 	}
 	cancel()
 	cleanup, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
 	defer cleanupCancel()
 	_ = processes.Close(cleanup)
+	policy, record, parsed, recErr := r.policy, r.record, r.parsed, r.err
 	observation := newShadowObservation(o, parsed, policy, record, recErr, status, time.Now().UTC())
 	if err := appendShadowObservation(cmrio.StateRoot(), observation); err != nil {
 		return 1
