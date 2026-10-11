@@ -66,8 +66,13 @@ exec /bin/sleep 5
 	if string(raw) != strings.Join(append([]string{"spawn"}, forwarded...), "\x00")+"\x00" {
 		t.Fatal("argv changed", raw)
 	}
-	observation := readShadowObservations(t)[0]
-	if observation.CMRError == nil || observation.CMRError.Code != "advisory_timeout" || observation.TaskBoardExitCode != 23 || observation.TaskClass != "code.implement" || observation.OriginalTaskClass != "implementation" || observation.Budget != "economy" {
+	// The unfinished advice continues in a detached process and records the
+	// launched child's status once its own (failed) preflight returns.
+	if !strings.Contains(stderr.String(), "cmr:shadow advisory deferred to pid ") {
+		t.Fatal("advisory was not deferred", stderr.String())
+	}
+	observation := waitShadowObservations(t, 1)[0]
+	if observation.CMRError == nil || observation.CMRError.Code == "advisory_timeout" || observation.TaskBoardExitCode != 23 || observation.TaskClass != "code.implement" || observation.OriginalTaskClass != "implementation" || observation.Budget != "economy" {
 		t.Fatalf("%+v", observation)
 	}
 }

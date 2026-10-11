@@ -34,6 +34,8 @@ type recommendOptions struct {
 	catalog, catalogOverlay, policy, candidates, host, story, producerFamily, mode, budget, localCapability string
 	delicate, fanout, refresh, json                                                                         bool
 	exclude                                                                                                 repeatedStrings
+	// wrapperArgs are spawn's own options before --, replayed by a deferred advisory.
+	wrapperArgs []string
 }
 
 func recommendFlagSet(name string, spawn bool, o *recommendOptions) *flag.FlagSet {

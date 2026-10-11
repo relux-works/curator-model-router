@@ -36,6 +36,7 @@ func runSpawn(args []string, stdout, stderr io.Writer) int {
 		return writeRefusal(&Refusal{Code: "cmr_invalid_arguments", Message: "mode must be select, recommend or shadow"}, o.json, stdout, stderr)
 	}
 	forwarded := args[boundary+1:]
+	o.wrapperArgs = args[:boundary]
 	// Resolve execution mode before any advisory admission, task, or usage work.
 	// Freeze the policy once so recommendation cannot observe a different mode.
 	// An explicit shadow flag needs no policy IO before the child's Start.
@@ -223,6 +224,15 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		r.parsed, _ = parseSpawnArgs(forwarded)
 		r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 	}
+	// A fast child (for example a background spawn) usually exits before the
+	// board preflight answers. Rather than recording a timeout, hand the advice to
+	// a detached cmr bounded by the remaining deadline; the caller returns now.
+	deferredPID := 0
+	if !completed && cmd.ProcessState != nil {
+		if deadline, ok := ctx.Deadline(); ok && ctx.Err() == nil {
+			deferredPID = deferShadowAdvice(o.wrapperArgs, forwarded, subprocess.ExitStatus(cmd.ProcessState), time.Until(deadline))
+		}
+	}
 	cancel()
 	// os.Exit follows run: cancellation alone is insufficient. Stop all owned
 	// groups and synchronize their waiters before returning, with a shared bound.
@@ -245,6 +255,10 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		return writeRefusal(&Refusal{Code: "cmr_spawn_failed", Message: "could not wait for task-board"}, o.json, stdout, stderr)
 	}
 	status := subprocess.ExitStatus(cmd.ProcessState)
+	if deferredPID > 0 {
+		_, _ = fmt.Fprintf(stderr, "cmr:shadow advisory deferred to pid %d\n", deferredPID)
+		return status
+	}
 	var advisory bytes.Buffer
 	if r.err == nil {
 		_ = outputRecommendation(r.record, true, nil, "shadow", &advisory)

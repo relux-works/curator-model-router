@@ -197,8 +197,15 @@ also defers policy reads until after child startup. When mode comes from policy,
 reading that policy is necessary to determine execution mode before launching.
 Advisory work runs concurrently with its own deadline (`--advisory-timeout 60s`,
 60 seconds by default). After the child exits, cmr gives unfinished advice up to
-250 milliseconds to finish, within its existing deadline. It then cancels remaining
-work and records `advisory_timeout`. Advisory subprocesses use separate process
+250 milliseconds to finish, within its existing deadline. If advice is still running
+and its deadline has not passed (typical for `--background` spawns, which return
+before the board preflight answers), cmr hands it to a detached `cmr shadow-finish`
+process in its own session, with no inherited stdio and the remaining deadline,
+prints `cmr:shadow advisory deferred to pid N`, and returns the child's status at
+once. The detached process recomputes the advice without launching anything and
+appends the observation with the child's exit status. If the hand-off cannot
+start, or the deadline already passed, cmr cancels remaining work and records
+`advisory_timeout`. Advisory subprocesses use separate process
 groups; cancellation terminates the entire group, allowing 100 milliseconds for
 graceful exit before force-killing it. Cleanup and reaping share a one-second bound
 before cmr returns. A completed preflight timeout

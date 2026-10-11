@@ -31,6 +31,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runShadow(args[1:], stdout, stderr)
 	case "spawn":
 		return runSpawn(args[1:], stdout, stderr)
+	case "shadow-finish": // internal: deferred shadow advisory
+		return runShadowFinish(args[1:], stdout, stderr)
 	case "route":
 		return runRoute(args[1:], stdout, stderr)
 	case "explain":
