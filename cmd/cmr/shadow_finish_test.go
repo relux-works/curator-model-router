@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,10 @@ import (
 // helper, which calls run() with the same arguments.
 func init() {
 	shadowFinishCommand = func(args []string) (*exec.Cmd, error) {
+		// Tests of the parent's own cancellation and reaping opt out of hand-off.
+		if os.Getenv("CMR_TEST_NO_DEFER") == "1" {
+			return nil, errors.New("hand-off disabled")
+		}
 		encoded, err := json.Marshal(args)
 		if err != nil {
 			return nil, err

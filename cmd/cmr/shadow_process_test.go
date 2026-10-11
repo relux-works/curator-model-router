@@ -76,6 +76,8 @@ func TestShadowProcessReapsAdvisoryDescendants(t *testing.T) {
 		t.Run(strconv.FormatBool(ignoreTerm), func(t *testing.T) {
 			root := cliEnvironment(t)
 			t.Setenv("LIVE_ROOT", root)
+			// This test covers the parent's own cancellation and reaping.
+			t.Setenv("CMR_TEST_NO_DEFER", "1")
 			policy := filepath.Join(root, "policy.toml")
 			if err := os.WriteFile(policy, []byte("budget_mode = 'economy'\n"), 0600); err != nil {
 				t.Fatal(err)
