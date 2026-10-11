@@ -88,3 +88,28 @@ exit 0
 		t.Fatal("the deferred advisory launched task-board", string(raw))
 	}
 }
+
+func TestShadowFinishIsBoundedAndNeverLaunches(t *testing.T) {
+	root := cliEnvironment(t)
+	t.Setenv("FAKE_LOG", filepath.Join(root, "argv"))
+	script := "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$FAKE_LOG\"\nexec /bin/sleep 30\n"
+	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	started := time.Now()
+	var out, stderr bytes.Buffer
+	if code := run([]string{"shadow-finish", "--exit-status", "5", "--task-class", "code", "--advisory-timeout", "300ms", "--", "TASK", "--role=developer", "--background"}, &out, &stderr); code != 0 {
+		t.Fatal(code, stderr.String())
+	}
+	if time.Since(started) > 3*time.Second {
+		t.Fatal("deferred advisory outlived its deadline")
+	}
+	o := readShadowObservations(t)
+	if len(o) != 1 || o[0].CMRError == nil || o[0].TaskBoardExitCode != 5 || o[0].Agreement != "no_cmr_pick" {
+		t.Fatalf("%+v", o)
+	}
+	raw, _ := os.ReadFile(filepath.Join(root, "argv"))
+	if strings.Contains(string(raw), "spawn\n") {
+		t.Fatal("shadow-finish launched task-board", string(raw))
+	}
+}
