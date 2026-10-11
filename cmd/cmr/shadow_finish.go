@@ -89,10 +89,13 @@ func runShadowFinish(args []string, _, _ io.Writer) int {
 		err    error
 	}
 	done := make(chan result, 1)
+	resolvedPolicy := make(chan recommend.Policy, 1)
 	go func(o recommendOptions) {
 		var r result
 		r.policy, r.err = cmrio.LoadPolicy(o.policy)
 		if r.err == nil {
+			// Publish immutable metadata before any slow preflight or quota work.
+			resolvedPolicy <- r.policy
 			o.loadedPolicy = &r.policy
 			r.record, r.parsed, r.err = spawnRecommendation(o, forwarded)
 		} else {
@@ -103,16 +106,21 @@ func runShadowFinish(args []string, _, _ io.Writer) int {
 	var r result
 	select {
 	case r = <-done:
-		if ctx.Err() != nil && r.err == nil {
-			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
-		}
 	case <-ctx.Done():
 		select {
 		case r = <-done:
 		default:
 			r.parsed, _ = parseSpawnArgs(forwarded)
 			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
+			select {
+			case r.policy = <-resolvedPolicy:
+			default:
+			}
 		}
+	}
+	// Whichever receive won, a result completed after the deadline is a timeout.
+	if ctx.Err() != nil && r.err == nil {
+		r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 	}
 	cancel()
 	cleanup, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
