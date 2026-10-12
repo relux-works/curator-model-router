@@ -113,3 +113,50 @@ func TestShadowFinishIsBoundedAndNeverLaunches(t *testing.T) {
 		t.Fatal("shadow-finish launched task-board", string(raw))
 	}
 }
+
+func TestShadowDeferredAdvisoryGetsBudgetFloor(t *testing.T) {
+	original := shadowFinishCommand
+	t.Cleanup(func() { shadowFinishCommand = original })
+	var got []string
+	shadowFinishCommand = func(args []string) (*exec.Cmd, error) {
+		got = args
+		return exec.Command("/usr/bin/true"), nil
+	}
+	timeoutArg := func() time.Duration {
+		t.Helper()
+		var last time.Duration
+		for i, a := range got {
+			if a == "--" {
+				break
+			}
+			if a == "--advisory-timeout" {
+				d, err := time.ParseDuration(got[i+1])
+				if err != nil {
+					t.Fatal(err)
+				}
+				last = d
+			}
+		}
+		return last
+	}
+	wrapper := []string{"--task-class", "code", "--advisory-timeout", "60s"}
+	// A background spawn leaves about the whole launch deadline; the floor wins.
+	if deferShadowAdvice(wrapper, []string{"TASK"}, 0, 59*time.Second) == 0 {
+		t.Fatal("hand-off failed")
+	}
+	if d := timeoutArg(); d != deferredAdvisoryBudget {
+		t.Fatalf("deferred budget %v, want %v: %q", d, deferredAdvisoryBudget, got)
+	}
+	// A caller deadline longer than the floor is kept.
+	if deferShadowAdvice(wrapper, []string{"TASK"}, 0, 5*time.Minute) == 0 {
+		t.Fatal("hand-off failed")
+	}
+	if d := timeoutArg(); d != 5*time.Minute {
+		t.Fatalf("deferred budget %v, want 5m: %q", d, got)
+	}
+	// An expired deadline means the advice already had its time: no hand-off.
+	got = nil
+	if pid := deferShadowAdvice(wrapper, []string{"TASK"}, 0, 0); pid != 0 || got != nil {
+		t.Fatalf("expired deadline handed off: pid %d %q", pid, got)
+	}
+}

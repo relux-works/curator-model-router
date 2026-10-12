@@ -24,6 +24,13 @@ var shadowFinishCommand = func(args []string) (*exec.Cmd, error) {
 	return exec.Command(self, args...), nil
 }
 
+// deferredAdvisoryBudget is the least time a detached advisory gets. It
+// recomputes the advice from scratch, and on a loaded board the two sequential
+// spawn-preflight queries (role, then agent) alone take 20-30 s each, so the
+// launch deadline's remainder (about 59 s after a background spawn) is not
+// enough. The detached process blocks nothing, and the watchdog still bounds it.
+const deferredAdvisoryBudget = 3 * time.Minute
+
 // deferShadowAdvice starts `cmr shadow-finish` in its own session with no
 // inherited stdio, so neither the caller's pipes nor its process group keep it
 // alive or kill it. It returns the PID, or 0 when the hand-off failed and the
@@ -33,9 +40,10 @@ func deferShadowAdvice(wrapper, forwarded []string, status int, remaining time.D
 	if remaining <= 0 {
 		return 0
 	}
+	remaining = max(remaining, deferredAdvisoryBudget)
 	args := []string{"shadow-finish", "--exit-status", strconv.Itoa(status)}
 	args = append(args, wrapper...)
-	// The last occurrence wins, so the remaining deadline overrides the caller's.
+	// The last occurrence wins, so the deferred budget overrides the caller's.
 	args = append(args, "--advisory-timeout", remaining.String(), "--")
 	args = append(args, forwarded...)
 	cmd, err := shadowFinishCommand(args)

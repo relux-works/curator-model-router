@@ -200,7 +200,9 @@ Advisory work runs concurrently with its own deadline (`--advisory-timeout 60s`,
 250 milliseconds to finish, within its existing deadline. If advice is still running
 and its deadline has not passed (typical for `--background` spawns, which return
 before the board preflight answers), cmr hands it to a detached `cmr shadow-finish`
-process in its own session, with no inherited stdio and the remaining deadline,
+process in its own session, with no inherited stdio and the remaining deadline
+raised to at least three minutes (the detached advice starts over, and on a loaded
+board its two sequential spawn-preflight queries alone can exceed the remainder),
 prints `cmr:shadow advisory deferred to pid N`, and returns the child's status at
 once. The detached process recomputes the advice without launching anything and
 appends the observation with the child's exit status. If the hand-off cannot
