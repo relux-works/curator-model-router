@@ -30,7 +30,7 @@ func TestCLIUsageRefreshAndRecommendationRefresh(t *testing.T) {
 	log := filepath.Join(root, "reads")
 	t.Setenv("FAKE_LOG", log)
 	script := `#!/bin/sh
-printf '%s\n' "$@" >> "$FAKE_LOG"
+/usr/bin/printf '%s\n' "$@" >> "$FAKE_LOG"
 IFS= read -r init || exit 91
 printf '{"id":1,"result":{"codexHome":"%s/.codex"}}\n' "$HOME"
 IFS= read -r initialized || exit 92

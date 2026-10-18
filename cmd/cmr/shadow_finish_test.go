@@ -52,7 +52,7 @@ func TestShadowFastChildDefersAdvisory(t *testing.T) {
 	t.Setenv("FAKE_LOG", filepath.Join(root, "argv"))
 	// A background spawn returns at once; the board preflight answers later.
 	script := `#!/bin/sh
-printf '%s\n' "$@" >> "$FAKE_LOG"
+/usr/bin/printf '%s\n' "$@" >> "$FAKE_LOG"
 if [ "$1" = '--no-update-check' ]; then
 /bin/sleep 1
 /bin/cat <<'PAYLOAD'
@@ -92,7 +92,7 @@ exit 0
 func TestShadowFinishIsBoundedAndNeverLaunches(t *testing.T) {
 	root := cliEnvironment(t)
 	t.Setenv("FAKE_LOG", filepath.Join(root, "argv"))
-	script := "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$FAKE_LOG\"\nexec /bin/sleep 30\n"
+	script := "#!/bin/sh\n/usr/bin/printf '%s\\n' \"$@\" >> \"$FAKE_LOG\"\nexec /bin/sleep 30\n"
 	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
 		t.Fatal(err)
 	}

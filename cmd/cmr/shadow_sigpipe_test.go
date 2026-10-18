@@ -16,7 +16,7 @@ func TestShadowLaunchesWithClosedStderrPipe(t *testing.T) {
 	}
 	root := t.TempDir()
 	log := filepath.Join(root, "spawn-argv")
-	script := "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"" + log + "\"\nexit 23\n"
+	script := "#!/bin/sh\n/usr/bin/printf '%s\\n' \"$@\" >> \"" + log + "\"\nexit 23\n"
 	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
 		t.Fatal(err)
 	}

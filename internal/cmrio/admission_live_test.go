@@ -26,14 +26,20 @@ func fakePreflight(t *testing.T, body string) string {
 }
 
 func TestPreflightTimeoutAndFailureCodes(t *testing.T) {
-	for _, tc := range []struct{ body, code string }{
-		{"exec /bin/sleep 5\n", "preflight_timeout"},
-		{"printf 'private provider output' >&2\nexit 7\n", "preflight_failed"},
+	// The failing script gets a generous deadline: the first exec of a fresh
+	// script can take a few hundred milliseconds on macOS hosts, which must not
+	// turn a failure into a timeout.
+	for _, tc := range []struct {
+		body, code string
+		deadline   time.Duration
+	}{
+		{"exec /bin/sleep 5\n", "preflight_timeout", 100 * time.Millisecond},
+		{"printf 'private provider output' >&2\nexit 7\n", "preflight_failed", 1500 * time.Millisecond},
 	} {
 		t.Run(tc.code, func(t *testing.T) {
 			fakePreflight(t, tc.body)
 			start := time.Now()
-			got, _, err := DiscoverWithOptions(context.Background(), 100*time.Millisecond, "", "developer", "", recommend.Catalog{})
+			got, _, err := DiscoverWithOptions(context.Background(), tc.deadline, "", "developer", "", recommend.Catalog{})
 			var r *recommend.Refusal
 			if !errors.As(err, &r) || r.Code != tc.code || len(got) != 0 || strings.Contains(r.Message, "private") {
 				t.Fatal(got, err)

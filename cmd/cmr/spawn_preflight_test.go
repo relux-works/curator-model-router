@@ -13,7 +13,7 @@ func TestSpawnFromCanonicalPreflight(t *testing.T) {
 	log := filepath.Join(root, "argv")
 	t.Setenv("FAKE_LOG", log)
 	script := `#!/bin/sh
-printf '%s\n' "$@" >> "$FAKE_LOG"
+/usr/bin/printf '%s\n' "$@" >> "$FAKE_LOG"
 if [ "$1" = '--no-update-check' ]; then
 /bin/cat <<'PAYLOAD'
 {"enabled":true,"role":"developer","providers":{"allowed":["codex"],"target":"codex"},"resolved_role_ceiling":{"configured":true,"contract_version":"spawn-policy-v2","model_criterion":"less_or_equal","admitted_pairs":{"provider":"codex","models":[{"id":"gpt-6.1-sol","efforts":["high"]}]}},"workload_class_recommendation":{"configured":true,"class_resolved":true,"limit_read_integrity":{"determinate":true},"available_pairs":[{"runtime":"codex","model":"gpt-6.1-sol","reasoning_effort":"high"}]}}
@@ -44,7 +44,7 @@ func TestShadowPreflightIgnoresCallerAgent(t *testing.T) {
 	root := cliEnvironment(t)
 	log := fakeTaskBoard(t, root)
 	script := `#!/bin/sh
-printf '%s\n' "$@" >> "$FAKE_LOG"
+/usr/bin/printf '%s\n' "$@" >> "$FAKE_LOG"
 if [ "$1" = '--no-update-check' ]; then
 /bin/cat <<'PAYLOAD'
 {"enabled":true,"role":"reviewer","providers":{"allowed":["codex"],"target":"codex"},"resolved_role_ceiling":{"configured":true,"contract_version":"spawn-policy-v2","model_criterion":"equal","admitted_pairs":{"provider":"codex","models":[{"id":"gpt-6.1-sol","efforts":["high"]}]}},"workload_class_recommendation":{"configured":true,"class_resolved":true,"limit_read_integrity":{"determinate":true},"available_pairs":[{"runtime":"codex","model":"gpt-6.1-sol","reasoning_effort":"high"}]}}

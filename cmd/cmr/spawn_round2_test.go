@@ -37,7 +37,7 @@ func TestSpawnPreflightTargetsSameBoard(t *testing.T) {
 				}
 				// A different board has a different admitted pair. Default preflight is A.
 				script := `#!/bin/sh
-printf '%s\n' "$@" >> "$FAKE_LOG"
+/usr/bin/printf '%s\n' "$@" >> "$FAKE_LOG"
 [ "$1" = 'spawn' ] && exit 0
 if [ "$FAKE_INCOMPLETE" = 1 ]; then
  case "$*" in
