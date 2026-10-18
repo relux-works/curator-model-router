@@ -175,7 +175,9 @@ func TestSpawnPolicySourceAndExactOutput(t *testing.T) {
 			if code := run(args, &out, &stderr); code != 17 || !bytes.Equal(out.Bytes(), childOut.Bytes()) || !bytes.Equal(stderr.Bytes(), childErr.Bytes()) {
 				t.Fatal(code, out.String(), stderr.String())
 			}
-			observations := readShadowObservations(t)
+			// Under load the advice may be deferred to the detached finisher, so
+			// the observation can land after spawn returns.
+			observations := waitShadowObservations(t, 1)
 			if len(observations) != 1 || observations[0].PolicySource != layer || observations[0].TaskBoardExitCode != 17 {
 				t.Fatal(observations)
 			}
