@@ -25,6 +25,8 @@ func (s *repeatedStrings) String() string     { return strings.Join(*s, ",") }
 func (s *repeatedStrings) Set(v string) error { *s = append(*s, v); return nil }
 
 type recommendOptions struct {
+	legacyWarnings                                                                                          io.Writer
+	policySource                                                                                            string
 	policyLoader                                                                                            func() (recommend.Policy, error)
 	ctx                                                                                                     context.Context
 	preflightTimeout, advisoryTimeout                                                                       time.Duration
@@ -120,7 +122,8 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 	if err != nil {
 		return recommend.DecisionRecord{}, err
 	}
-	catalog, err := cmrio.LoadCatalog(o.catalog)
+	catalog, catalogSource, err := cmrio.LoadCatalogWithSource(o.catalog)
+	catalogSource.WarnLegacy("catalog", o.legacyWarnings)
 	if err != nil {
 		return recommend.DecisionRecord{}, err
 	}
@@ -128,7 +131,9 @@ func recommendation(o recommendOptions) (recommend.DecisionRecord, error) {
 	if o.loadedPolicy != nil {
 		policy = *o.loadedPolicy
 	} else {
-		policy, err = cmrio.LoadPolicy(o.policy)
+		var source cmrio.ConfigSource
+		policy, source, err = cmrio.LoadPolicyWithSource(o.policy)
+		source.WarnLegacy("policy", o.legacyWarnings)
 		if err != nil {
 			return recommend.DecisionRecord{}, err
 		}
@@ -341,6 +346,7 @@ func runRecommend(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return commandError(err, hasJSON(args), stdout, stderr)
 	}
+	o.legacyWarnings = stderr
 	record, err := recommendation(o)
 	if err != nil {
 		return commandError(err, o.json, stdout, stderr)

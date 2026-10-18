@@ -21,6 +21,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runHelp(nil, stdout, stderr)
 	}
 	switch args[0] {
+	case "config":
+		return runConfig(args[1:], stdout, stderr)
+	case "migrate":
+		return runMigrate(args[1:], stdout, stderr)
 	case "local":
 		return runLocal(args[1:], stdout, stderr)
 	case "recommend":

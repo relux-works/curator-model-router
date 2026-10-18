@@ -65,14 +65,71 @@ malformed or incomplete authority still returns `invalid_admission`. Provider ou
 If task-board is absent from PATH, cmr uses catalog rows whose runtime binaries resolve on PATH
 and records `admission_source: path-catalog` in the output and decision.
 
-Catalog lookup: `--catalog FILE`, then `$XDG_CONFIG_HOME/curator/model-router/catalog.json`
-(`$HOME/.config` when XDG_CONFIG_HOME is unset), then `recommend.DefaultCatalog()`'s embedded catalog.
-An explicit missing or malformed override refuses. Catalog rows do not themselves grant admission. The task platform defaults to the local Go OS name (for example `darwin`, `linux`, or `windows`); `--platform NAME` on the cmr side overrides it. Catalog `not_for` constraints filter that platform before selection and spawning.
+Catalog lookup: `--catalog FILE`, then
+`${XDG_CONFIG_HOME:-$HOME/.config}/swarma/router/catalog.json`, then
+`/etc/swarma/router/catalog.json`, then the one-release legacy fallback
+`${XDG_CONFIG_HOME:-$HOME/.config}/curator/model-router/catalog.json`, then
+`recommend.DefaultCatalog()`'s embedded catalog. An explicit missing file refuses.
+The first existing file wins whole: no merging across these layers. An unreadable
+or malformed selected file refuses without falling through. Catalog rows do not themselves grant admission. The task platform defaults to the local Go OS name (for example `darwin`, `linux`, or `windows`); `--platform NAME` on the cmr side overrides it. Catalog `not_for` constraints filter that platform before selection and spawning.
+
+## Configuration inspection and migration
+
+`cmr config show [--json]` reports `policy`, `catalog`, `state_root` and `data_root`,
+each with `path`, `layer` and `candidates` (`path`, `layer`, `exists`). Configuration
+layers are `flag`, `user`, `system`, `legacy`, `default`; built-in defaults have no
+filesystem path. State/data roots are always the `user` layer. Optional `--policy FILE`
+and `--catalog FILE` inspect flag overrides. Inspection checks existence only and
+creates nothing; it does not parse or validate the selected files.
+
+State writes use `${XDG_STATE_HOME:-$HOME/.local/state}/swarma/router/`.
+Data writes use `${XDG_DATA_HOME:-$HOME/.local/share}/swarma/router/`, with the evidence
+store under `evidence/`. Usage cache and locks use the new roots only; a cold cache is
+expected. `shadow report` reads both the new state root and the legacy
+`${XDG_STATE_HOME:-$HOME/.local/state}/curator/model-router/`, orders observations by
+time, and counts exact duplicate JSON records once. Partial final lines are handled
+independently in each log. `explain` and `replay` accept file paths, not decision IDs;
+old records can still be supplied by their explicit path.
+
+When a legacy config file is loaded, recommend prints one stderr line per file:
+
+```text
+cmr: reading legacy <kind> <old path>; move it to <new path> (cmr migrate)
+```
+
+Spawn and detached shadow-finish emit no notice. Shadow observations include
+`policy_source` instead. All legacy config and history fallback is transitional
+for one release and will be removed in the next minor release.
+
+```sh
+cmr config show --json
+cmr migrate --dry-run --json
+cmr migrate --json
+```
+
+Migration copies the legacy policy and catalog into the user config directory,
+and copies the entire legacy state and data trees into the new roots. It never
+uses system config as a destination or deletes old files. File modes survive;
+new directories use 0700. Matching destination content and modes are unchanged;
+other existing files are conflicts (`cmr_migrate_conflict`, exit 2). Conflicts are
+checked before copying. IO errors return `cmr_migrate_io`, exit 2. Each file is
+copied to a temporary sibling and published atomically with a no-replace hard link,
+which also prevents overwriting a destination created concurrently. A failed copy
+leaves no partial destination file; earlier completed files may remain and a retry
+skips them. Staging files are cleaned up. Symlinks and special source files refuse;
+existing destination directories are retained. Dry-run performs the same preflight
+without creating anything. JSON includes `dry_run`, `entries` (source, destination,
+status: `copy`, `copied`, `unchanged`, `conflict`, `error`) and a typed `error` on refusal.
 
 ## Policy and standing rules
 
-Policy lookup: `--policy FILE` (TOML or JSON), then `$HOME/.curator/routing.toml`, then built-in defaults.
-Missing implicit files use defaults; explicit missing files refuse. TOML is decoded with
+Policy lookup: `--policy FILE` (TOML or JSON), then
+`${XDG_CONFIG_HOME:-$HOME/.config}/swarma/router/routing.toml`, then
+`/etc/swarma/router/routing.toml`, then `$HOME/.curator/routing.toml`, then
+built-in defaults. The first existing file wins whole, without merging files from
+different layers. Unreadable or malformed selected files and explicit missing
+files refuse without falling through. Relative `catalog_overlay` paths in the
+policy resolve from the current working directory, including after migration. TOML is decoded with
 `github.com/pelletier/go-toml/v2`, then passed through the library's strict policy overlay and validation.
 Unknown fields and invalid values refuse. Defaults include:
 
@@ -164,8 +221,9 @@ Human output prints the effective budget; JSON records non-default modes explici
 complete proposed argv and launches nothing. In both flag and policy modes, **shadow is fail-open**:
 `--mode shadow` executes the caller's task-board spawn arguments unchanged even when recommendation fails
 (invalid admission, preflight error, refusal, no qualified candidate, policy load error,
-or usage error). The would-be decision or typed error is logged on stderr as `cmr:shadow ...`;
-completed decisions are also stored. Logging or decision-storage failures cannot block launch.
+or usage error). The would-be decision or typed error is recorded in the shadow observation;
+completed decisions are also stored. Observation or decision-storage failures cannot block launch.
+Executing spawn preserves the child's stdout and stderr byte for byte; cmr emits no advisory or legacy-config notices there.
 Only cmr argument parse errors before `--` and a missing task-board binary stop shadow;
 arguments after `--` are passed through even if cmr cannot parse them. Task-board owns the
 output and exit status. Policy `mode = "shadow"` has the same behavior; a readable shadow
@@ -176,7 +234,7 @@ Human output includes the selection, ranked alternatives, rule sources, exact fl
 and decision ID. `--json` gives structured output for every new command and typed refusal; select/shadow
 preserve task-board's own output format and exit code. To request task-board JSON too, forward its `--json`.
 
-Decision records live under `$XDG_STATE_HOME/curator/model-router/decisions/` and contain the frozen inputs
+Decision records live under `$XDG_STATE_HOME/swarma/router/decisions/` and contain the frozen inputs
 and replayable recommendation. When XDG_STATE_HOME is unset, `$HOME/.local/state` is used.
 
 ## Shadow observations and reports
@@ -203,15 +261,15 @@ before the board preflight answers), cmr hands it to a detached `cmr shadow-fini
 process in its own session, with no inherited stdio and the remaining deadline
 raised to at least three minutes (the detached advice starts over, and on a loaded
 board its two sequential spawn-preflight queries alone can exceed the remainder),
-prints `cmr:shadow advisory deferred to pid N`, and returns the child's status at
-once. The detached process recomputes the advice without launching anything and
+and returns the child's status at once without writing a hand-off notice. The detached
+process recomputes the advice without launching anything and
 appends the observation with the child's exit status. If the hand-off cannot
 start, or the deadline already passed, cmr cancels remaining work and records
 `advisory_timeout`. Advisory subprocesses use separate process
 groups; cancellation terminates the entire group, allowing 100 milliseconds for
 graceful exit before force-killing it. Cleanup and reaping share a one-second bound
 before cmr returns. A completed preflight timeout
-retains `preflight_timeout`. Advisory output and observations are written after
+retains `preflight_timeout`. Observations are written after
 the child finishes, and the wrapper returns the child's status even on relay or
 storage failures. Signal termination uses the shell status `128 + signal` in both
 the wrapper and observation (SIGPIPE is 141, SIGTERM is 143). SIGINT and SIGTERM
@@ -229,17 +287,17 @@ shadow launches once even when the advisory decision uses fan-out. `cmr_pick` re
 selected configuration, the first fan-out configuration; the decision record retains the full fan-out.
 
 After the child completes, shadow appends one JSON line to
-`$XDG_STATE_HOME/curator/model-router/shadow/observations.jsonl` (default
-`$HOME/.local/state/curator/model-router/shadow/observations.jsonl`). Observation storage uses
-private directory/file permissions and a single append write per line. A storage failure prints
-`cmr:shadow warning: could not append observation` on stderr and preserves launch and exit status.
-A failed append leaves no observation to count; monitor these warnings during the shadow week.
+`$XDG_STATE_HOME/swarma/router/shadow/observations.jsonl` (default
+`$HOME/.local/state/swarma/router/shadow/observations.jsonl`). Observation storage uses
+private directory/file permissions and a single append write per line. A storage failure
+preserves child output, launch and exit status. A failed append leaves no observation to count.
 
 The stable `shadow-observation-v1` JSON fields are:
 
 | Field | Meaning |
 | --- | --- |
 | `schema_version` | `shadow-observation-v1` |
+| `policy_source` | `flag`, `user`, `system`, `legacy` or `default`; older records may omit it |
 | `time` | UTC RFC3339 timestamp after child completion, possibly fractional seconds |
 | `decision_id` | Content ID, or `null` when none was computed; may exist even if decision storage failed |
 | `original_task_class` | Supplied class, before alias translation; older records may omit it |
@@ -330,7 +388,7 @@ and lexical environment paths; aliases are deliberately not resolved by probing 
 Plugins without a declared home (Muse/Agy in v0.5.40) use runtime-only keys rather than guessing a home.
 
 An O_EXCL lock covers each entire refresh and commit under
-`$XDG_STATE_HOME/curator/model-router/usage/`. Concurrent refresh returns a typed locked refusal.
+`$XDG_STATE_HOME/swarma/router/usage/`. Concurrent refresh returns a typed locked refusal.
 Failed reads cache a sanitized unavailable record and retain prior measurement ages without supplying
 headroom. Routing freshness is classified separately for every window at one frozen `as_of`;
 percentages convert with `routing.PercentToBP`. Empty provider scopes become routing's account-wide

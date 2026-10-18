@@ -69,7 +69,12 @@ func TestInvalidPolicyRetainsOnlyRawMode(t *testing.T) {
 		})
 	}
 }
+
+// Missing implicit files use defaults; explicit missing files refuse and an explicit catalog wins over legacy.
 func TestConfigPrecedence(t *testing.T) {
+	oldSystemRoot := SystemConfigRoot
+	SystemConfigRoot = t.TempDir()
+	t.Cleanup(func() { SystemConfigRoot = oldSystemRoot })
 	root := t.TempDir()
 	t.Setenv("HOME", root)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
@@ -106,8 +111,9 @@ func TestConfigPrecedence(t *testing.T) {
 	}
 }
 
+// Deferred validation retains the selected bytes and raw mode despite a later file rewrite.
 func TestPreparePolicyFreezesModeAndDefersValidation(t *testing.T) {
-	root := t.TempDir()
+	root := configEnvironment(t)
 	path := filepath.Join(root, "policy.toml")
 	if err := os.WriteFile(path, []byte("mode = 'shadow'\nfanout_k = ["), 0600); err != nil {
 		t.Fatal(err)

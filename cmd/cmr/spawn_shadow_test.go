@@ -13,6 +13,7 @@ import (
 	"github.com/relux-works/curator-model-router/internal/cmrio"
 )
 
+// Shadow launches once with original argv/status through advisory failures; typed failures stay in observations and never alter child output.
 func TestShadowFailOpen(t *testing.T) {
 	for _, policyMode := range []bool{false, true} {
 		for _, failure := range []string{"success", "invalid_admission", "preflight_error", "refusal", "no_qualified_candidate", "policy_validation", "policy_decode", "policy_conversion", "policy_syntax", "usage_error", "catalog_error", "decision_write", "forwarded_parse", "conflicting_role"} {
@@ -114,18 +115,18 @@ func TestShadowFailOpen(t *testing.T) {
 						t.Fatal(observation)
 					}
 				}
-				if out.Len() != 0 || !strings.HasPrefix(stderr.String(), "cmr:shadow ") {
-					t.Fatal("recommendation leaked into board output or missing shadow log", out.String(), stderr.String())
+				if failure == "success" && observation.DecisionID == nil {
+					t.Fatal("missing would-be decision", observation)
 				}
-				if failure == "success" {
-					if !strings.Contains(stderr.String(), "sha256:") {
-						t.Fatal("missing would-be decision", stderr.String())
+				if observation.CMRError != nil {
+					wantCode := map[string]string{"invalid_admission": "invalid_admission", "preflight_error": "preflight_failed", "refusal": "invalid_task", "policy_validation": "invalid_policy", "policy_decode": "invalid_policy", "policy_conversion": "invalid_policy", "policy_syntax": "invalid_policy", "usage_error": "cmr_usage_home_evidence_invalid", "catalog_error": "invalid_catalog", "decision_write": "cmr_decision_write_failed", "forwarded_parse": "cmr_invalid_arguments", "conflicting_role": "cmr_invalid_arguments"}[failure]
+					if observation.CMRError.Code != wantCode {
+						t.Fatal("wrong advisory failure", failure, observation.CMRError)
 					}
-				} else {
-					wantError := map[string]string{"invalid_admission": "invalid_admission", "preflight_error": "spawn-preflight failed", "refusal": "invalid_task", "no_qualified_candidate": "no_qualified_candidate", "policy_validation": "invalid_policy", "policy_decode": "invalid_policy", "policy_conversion": "invalid_policy", "policy_syntax": "invalid_policy", "usage_error": "cmr_usage_", "catalog_error": "invalid_catalog", "decision_write": "cmr_decision_write_failed", "forwarded_parse": "cmr_invalid_arguments", "conflicting_role": "conflicting --role"}[failure]
-					if !strings.Contains(stderr.String(), wantError) {
-						t.Fatal("missing advisory failure", wantError, stderr.String())
-					}
+				}
+				// Advisory success and failures are recorded without altering child output.
+				if out.Len() != 0 || stderr.Len() != 0 {
+					t.Fatal("advisory changed child output", out.String(), stderr.String())
 				}
 			})
 		}
@@ -221,6 +222,7 @@ func TestShadowOnlyWrapperParseAndMissingBoardStopLaunch(t *testing.T) {
 	}
 }
 
+// Raw shadow modes survive malformed policies and preserve launch output; select/recommend refuse invalid policies before launch.
 func TestShadowRawModeAndUnknownPolicy(t *testing.T) {
 	for _, tc := range []struct {
 		name, body, flag string
@@ -257,7 +259,7 @@ func TestShadowRawModeAndUnknownPolicy(t *testing.T) {
 			}
 			b, err := os.ReadFile(log)
 			if tc.status == 23 {
-				if err != nil || string(b) != "spawn\nTASK with spaces\n\n" || !strings.Contains(stderr.String(), "invalid_policy") {
+				if err != nil || string(b) != "spawn\nTASK with spaces\n\n" || stderr.Len() != 0 {
 					t.Fatal("raw mode did not forward exact original launch", string(b), err, stderr.String())
 				}
 			} else if !os.IsNotExist(err) || !strings.Contains(out.String(), "invalid_policy") {

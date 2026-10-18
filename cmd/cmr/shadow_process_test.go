@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/relux-works/curator-model-router/internal/cmrio"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,6 +26,7 @@ func TestShadowProcessHelper(t *testing.T) {
 	if err := json.Unmarshal([]byte(os.Getenv("CMR_PROCESS_ARGS")), &args); err != nil {
 		os.Exit(99)
 	}
+	cmrio.SystemConfigRoot = filepath.Join(os.Getenv("HOME"), "system")
 	os.Exit(run(args, os.Stdout, os.Stderr))
 }
 

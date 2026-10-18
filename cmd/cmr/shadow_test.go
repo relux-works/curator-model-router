@@ -202,6 +202,7 @@ func TestShadowObservationDefaultsErrorsAndRefusals(t *testing.T) {
 	}
 }
 
+// An observation storage failure preserves the launched argv, child output and completed exit status.
 func TestShadowObservationWriteFailure(t *testing.T) {
 	for _, status := range []string{"0", "23"} {
 		t.Run(status, func(t *testing.T) {
@@ -224,13 +225,15 @@ func TestShadowObservationWriteFailure(t *testing.T) {
 			if err != nil || string(raw) != "spawn\nTASK\n--role=developer\n--background\n" {
 				t.Fatal("launch changed", string(raw), err)
 			}
-			if strings.Count(stderr.String(), "cmr:shadow warning: could not append observation\n") != 1 {
-				t.Fatal("missing one-line warning", stderr.String())
+			// Even observation IO failures preserve child output.
+			if stderr.Len() != 0 {
+				t.Fatal("observation failure changed child output", stderr.String())
 			}
 		})
 	}
 }
 
+// Distinct observations contribute to agreement/divergence totals, filters, and stable output; failed advice never counts as agreement.
 func TestShadowReportAggregation(t *testing.T) {
 	cliEnvironment(t)
 	at := time.Date(2026, 10, 7, 0, 0, 0, 0, time.UTC)
@@ -239,7 +242,9 @@ func TestShadowReportAggregation(t *testing.T) {
 	items := []shadowObservation{base}
 	effort := base
 	effort.CallerPair = completeShadowPair("codex", "gpt-6.1-sol", "medium")
-	items = append(items, effort, effort)
+	items = append(items, effort)
+	effort.Time = effort.Time.Add(time.Nanosecond)
+	items = append(items, effort)
 	model := base
 	model.CallerPair = completeShadowPair("codex", "other", "high")
 	items = append(items, model)
@@ -385,12 +390,14 @@ func TestShadowConcurrentAppend(t *testing.T) {
 	}
 }
 
+// A complete record without a newline counts, but an incomplete final record is excluded and flagged, including oversized tails.
 func TestShadowReportSkipsOnlyAnIncompleteFinalLine(t *testing.T) {
 	cliEnvironment(t)
 	root := cmrio.StateRoot()
 	path := shadowObservationPath(root)
 	o := shadowObservation{SchemaVersion: "shadow-observation-v1", Time: time.Now().UTC(), CMRPick: shadowPick{Code: "no_qualified_candidate"}}
 	for i := 0; i < 2; i++ {
+		o.Time = o.Time.Add(time.Nanosecond)
 		if err := appendShadowObservation(root, o); err != nil {
 			t.Fatal(err)
 		}
@@ -425,6 +432,7 @@ func TestShadowReportSkipsOnlyAnIncompleteFinalLine(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := 0; i < 2; i++ {
+		o.Time = o.Time.Add(time.Nanosecond)
 		if err := appendShadowObservation(root, o); err != nil {
 			t.Fatal(err)
 		}

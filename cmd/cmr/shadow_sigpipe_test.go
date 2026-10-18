@@ -6,15 +6,18 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/relux-works/curator-model-router/internal/cmrio"
 )
 
 // Shadow must launch even when cmr's own stderr is a pipe without a reader:
 // the advisory write would otherwise end cmr with SIGPIPE before task-board.
 func TestShadowLaunchesWithClosedStderrPipe(t *testing.T) {
 	if os.Getenv("CMR_SIGPIPE_CHILD") == "1" {
-		os.Exit(run([]string{"spawn", "--task-class", "code.implement", "--mode", "shadow", "--policy", "/nonexistent/policy.toml", "--", "TASK", "--role", "developer", "--background"}, os.Stdout, os.Stderr))
+		cmrio.SystemConfigRoot = filepath.Join(os.Getenv("HOME"), "system")
+		os.Exit(run([]string{"spawn", "--task-class", "code.implement", "--mode", "shadow", "--policy", filepath.Join(os.Getenv("HOME"), "missing-policy.toml"), "--", "TASK", "--role", "developer", "--background"}, os.Stdout, os.Stderr))
 	}
-	root := t.TempDir()
+	root := cliEnvironment(t)
 	log := filepath.Join(root, "spawn-argv")
 	script := "#!/bin/sh\n/usr/bin/printf '%s\\n' \"$@\" >> \"" + log + "\"\nexit 23\n"
 	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
@@ -42,9 +45,10 @@ func TestShadowLaunchesWithClosedStderrPipe(t *testing.T) {
 // The launched task-board must keep the default SIGPIPE disposition.
 func TestShadowChildKeepsDefaultSigpipe(t *testing.T) {
 	if os.Getenv("CMR_SIGPIPE_CHILD") == "2" {
-		os.Exit(run([]string{"spawn", "--task-class", "code.implement", "--mode", "shadow", "--policy", "/nonexistent/policy.toml", "--", "TASK", "--role", "developer", "--background"}, os.Stdout, os.Stderr))
+		cmrio.SystemConfigRoot = filepath.Join(os.Getenv("HOME"), "system")
+		os.Exit(run([]string{"spawn", "--task-class", "code.implement", "--mode", "shadow", "--policy", filepath.Join(os.Getenv("HOME"), "missing-policy.toml"), "--", "TASK", "--role", "developer", "--background"}, os.Stdout, os.Stderr))
 	}
-	root := t.TempDir()
+	root := cliEnvironment(t)
 	script := "#!/bin/sh\nkill -s PIPE $$\nexit 23\n"
 	if err := os.WriteFile(filepath.Join(root, "task-board"), []byte(script), 0700); err != nil {
 		t.Fatal(err)

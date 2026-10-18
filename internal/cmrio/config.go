@@ -14,64 +14,60 @@ import (
 	"github.com/relux-works/curator-model-router/pkg/routing"
 )
 
-func StateRoot() string {
-	root := os.Getenv("XDG_STATE_HOME")
-	if root == "" {
-		root = filepath.Join(os.Getenv("HOME"), ".local", "state")
-	}
-	return filepath.Join(root, "curator", "model-router")
-}
 func LoadCatalog(path string) (recommend.Catalog, error) {
-	if path == "" {
-		root := os.Getenv("XDG_CONFIG_HOME")
-		if root == "" {
-			root = filepath.Join(os.Getenv("HOME"), ".config")
-		}
-		path = filepath.Join(root, "curator", "model-router", "catalog.json")
-		b, err := os.ReadFile(path)
-		if os.IsNotExist(err) {
-			return recommend.LoadCatalog(recommend.DefaultCatalog())
-		}
-		if err != nil {
-			return recommend.Catalog{}, &recommend.Refusal{Code: recommend.InvalidCatalog, Message: "cannot read catalog"}
-		}
-		return recommend.LoadCatalog(b)
-	}
-	b, err := os.ReadFile(path)
+	catalog, _, err := LoadCatalogWithSource(path)
+	return catalog, err
+}
+func LoadCatalogWithSource(path string) (recommend.Catalog, ConfigSource, error) {
+	source, err := ResolveConfig("catalog", path)
 	if err != nil {
-		return recommend.Catalog{}, &recommend.Refusal{Code: recommend.InvalidCatalog, Message: "cannot read catalog"}
+		return recommend.Catalog{}, source, err
 	}
-	return recommend.LoadCatalog(b)
+	raw := recommend.DefaultCatalog()
+	if source.Layer != "default" {
+		raw, err = os.ReadFile(source.Path)
+		if err != nil {
+			return recommend.Catalog{}, source, configReadError("catalog")
+		}
+	}
+	catalog, err := recommend.LoadCatalog(raw)
+	return catalog, source, err
 }
 
 // PreparePolicy reads one frozen policy snapshot and extracts only its execution
 // mode. Full decoding/validation can then happen after a shadow child's Start.
 // An implicit missing policy yields defaults; an explicit missing policy refuses.
 func PreparePolicy(path string) (routing.Mode, func() (recommend.Policy, error)) {
-	explicit := path != ""
-	if !explicit {
-		path = filepath.Join(os.Getenv("HOME"), ".curator", "routing.toml")
+	mode, _, load := PreparePolicyWithSource(path)
+	return mode, load
+}
+func PreparePolicyWithSource(path string) (routing.Mode, ConfigSource, func() (recommend.Policy, error)) {
+	source, err := ResolveConfig("policy", path)
+	if err == nil && source.Layer == "default" {
+		return recommend.DefaultPolicy().Mode, source, func() (recommend.Policy, error) { return recommend.DefaultPolicy(), nil }
 	}
-	b, err := os.ReadFile(path)
-	if !explicit && os.IsNotExist(err) {
-		return recommend.DefaultPolicy().Mode, func() (recommend.Policy, error) { return recommend.DefaultPolicy(), nil }
+	var b []byte
+	if err == nil {
+		b, err = os.ReadFile(source.Path)
 	}
 	if err != nil {
-		return "", func() (recommend.Policy, error) {
-			return recommend.Policy{}, &recommend.Refusal{Code: recommend.InvalidPolicy, Message: "cannot read policy"}
-		}
+		return "", source, func() (recommend.Policy, error) { return recommend.Policy{}, configReadError("policy") }
 	}
-	asJSON := strings.EqualFold(filepath.Ext(path), ".json")
+	asJSON := strings.EqualFold(filepath.Ext(source.Path), ".json")
 	mode := rawPolicyMode(b, asJSON)
 	if mode == "" {
 		mode = recommend.DefaultPolicy().Mode
 	}
-	return mode, func() (recommend.Policy, error) { return DecodePolicy(b, asJSON) }
+	return mode, source, func() (recommend.Policy, error) { return DecodePolicy(b, asJSON) }
 }
-
 func LoadPolicy(path string) (recommend.Policy, error) {
-	_, load := PreparePolicy(path)
-	return load()
+	policy, _, err := LoadPolicyWithSource(path)
+	return policy, err
+}
+func LoadPolicyWithSource(path string) (recommend.Policy, ConfigSource, error) {
+	_, source, load := PreparePolicyWithSource(path)
+	policy, err := load()
+	return policy, source, err
 }
 
 // rawPolicyMode reads only the top-level declaration, independently of strict

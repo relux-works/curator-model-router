@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -44,7 +42,8 @@ func runSpawn(args []string, stdout, stderr io.Writer) int {
 	var policyErr error
 	mode := o.mode
 	if mode == "" {
-		hint, load := cmrio.PreparePolicy(o.policy)
+		hint, source, load := cmrio.PreparePolicyWithSource(o.policy)
+		o.policySource = source.Layer
 		mode = string(hint)
 		if mode == "shadow" {
 			o.policyLoader = load
@@ -53,7 +52,9 @@ func runSpawn(args []string, stdout, stderr io.Writer) int {
 			policy, policyErr = load()
 		}
 	} else if mode != "shadow" {
-		policy, policyErr = cmrio.LoadPolicy(o.policy)
+		var source cmrio.ConfigSource
+		policy, source, policyErr = cmrio.LoadPolicyWithSource(o.policy)
+		o.policySource = source.Layer
 	}
 
 	if mode == "shadow" {
@@ -89,9 +90,6 @@ func runSpawn(args []string, stdout, stderr io.Writer) int {
 			return writeRefusal(&Refusal{Code: "cmr_output_failed", Message: "could not write recommendation"}, o.json, stdout, stderr)
 		}
 		return 0
-	}
-	if _, err = fmt.Fprintf(stderr, "cmr:%s %s admission=%s\n", record.DecisionID, mode, record.Inputs.AdmissionSource); err != nil {
-		return writeRefusal(&Refusal{Code: "cmr_output_failed", Message: "could not log decision"}, o.json, stdout, stderr)
 	}
 	binary, err := exec.LookPath("task-board")
 	if err != nil {
@@ -166,12 +164,13 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		record recommend.DecisionRecord
 		parsed spawnArguments
 		policy recommend.Policy
+		source string
 		err    error
 	}
 	done := make(chan result, 1)
-	resolvedPolicy := make(chan recommend.Policy, 1)
+	resolvedPolicy := make(chan result, 1)
 	go func(o recommendOptions) {
-		r := result{policy: policy, err: policyErr}
+		r := result{policy: policy, source: o.policySource, err: policyErr}
 		if ctx.Err() != nil {
 			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 			done <- r
@@ -181,11 +180,13 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		if o.policyLoader != nil {
 			r.policy, r.err = o.policyLoader()
 		} else if policy.SchemaVersion == "" && policyErr == nil {
-			r.policy, r.err = cmrio.LoadPolicy(o.policy)
+			var source cmrio.ConfigSource
+			r.policy, source, r.err = cmrio.LoadPolicyWithSource(o.policy)
+			r.source = source.Layer
 		}
 		if r.err == nil {
 			// Publish immutable metadata before any slow preflight or quota work.
-			resolvedPolicy <- r.policy
+			resolvedPolicy <- result{policy: r.policy, source: r.source}
 			o.loadedPolicy = &r.policy
 			r.record, r.parsed, r.err = spawnRecommendation(o, forwarded)
 		} else {
@@ -221,6 +222,7 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 	}
 	if !completed {
 		r.policy = policy
+		r.source = o.policySource
 		r.parsed, _ = parseSpawnArgs(forwarded)
 		r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 	}
@@ -245,7 +247,8 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 		case <-cleanup.Done():
 		}
 		select {
-		case r.policy = <-resolvedPolicy:
+		case metadata := <-resolvedPolicy:
+			r.policy, r.source = metadata.policy, metadata.source
 		default:
 		}
 	}
@@ -256,21 +259,15 @@ func runShadowSpawn(o recommendOptions, forwarded []string, policy recommend.Pol
 	}
 	status := subprocess.ExitStatus(cmd.ProcessState)
 	if deferredPID > 0 {
-		_, _ = fmt.Fprintf(stderr, "cmr:shadow advisory deferred to pid %d\n", deferredPID)
 		return status
 	}
-	var advisory bytes.Buffer
-	if r.err == nil {
-		_ = outputRecommendation(r.record, true, nil, "shadow", &advisory)
-	} else {
-		commandError(r.err, true, &advisory, io.Discard)
+	if r.source == "" {
+		source, _ := cmrio.ResolveConfig("policy", o.policy)
+		r.source = source.Layer
 	}
-	// Write only after Wait so advisory and child never concurrently use writers.
-	_, _ = fmt.Fprintf(stderr, "cmr:shadow %s\n", strings.TrimSpace(advisory.String()))
+	o.policySource = r.source
 	observation := newShadowObservation(o, r.parsed, r.policy, r.record, r.err, status, time.Now().UTC())
-	if err := appendShadowObservation(cmrio.StateRoot(), observation); err != nil {
-		_, _ = fmt.Fprintln(stderr, "cmr:shadow warning: could not append observation")
-	}
+	_ = appendShadowObservation(cmrio.StateRoot(), observation)
 
 	return status
 }

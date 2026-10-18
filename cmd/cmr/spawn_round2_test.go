@@ -104,6 +104,7 @@ printf '{"enabled":true,"role":"developer","providers":{"allowed":["codex"],"tar
 	}
 }
 
+// The preflight confirmation policy controls rationale injection; the decision is stored without adding child stderr.
 func TestSpawnSelectionConfirmationContract(t *testing.T) {
 	for _, tc := range []struct {
 		name, ceiling string
@@ -159,8 +160,9 @@ done
 			if code := run([]string{"spawn", "--role", "developer", "--task-class", "code.implement", "--agent", "codex", "--model", "sol", "--reasoning-effort", "high", "--", "TASK", "--background"}, &out, &stderr); code != 0 {
 				t.Fatal(code, out.String(), stderr.String())
 			}
-			if !strings.Contains(stderr.String(), "cmr:sha256:") {
-				t.Fatal("cmr lost decision id", stderr.String())
+			// The decision remains in storage while spawn preserves the child streams.
+			if stderr.Len() != 0 {
+				t.Fatal("cmr changed child stderr", stderr.String())
 			}
 			paths, _ := filepath.Glob(filepath.Join(cmrio.StateRoot(), "decisions", "*.json"))
 			data, _ := os.ReadFile(paths[0])

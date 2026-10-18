@@ -21,6 +21,8 @@ func fakeTaskBoard(t *testing.T, root string) string {
 	}
 	return log
 }
+
+// Spawn preserves forwarded locks/argv and child output; recommend mode does not launch, and selection refusals never launch.
 func TestSpawnModesLocksAndRefusal(t *testing.T) {
 	for _, mode := range []string{"select", "recommend", "shadow"} {
 		t.Run(mode, func(t *testing.T) {
@@ -54,11 +56,11 @@ func TestSpawnModesLocksAndRefusal(t *testing.T) {
 			got := strings.Split(strings.TrimSuffix(string(b), "\n"), "\n")
 			want := append([]string{"spawn"}, forwarded...)
 			if mode == "shadow" {
-				if !reflect.DeepEqual(got, want) || !strings.Contains(stderr.String(), "shadow") {
+				if !reflect.DeepEqual(got, want) || stderr.Len() != 0 {
 					t.Fatal(got, stderr.String())
 				}
 			} else {
-				if !reflect.DeepEqual(got, want) || !strings.Contains(stderr.String(), "cmr:sha256:") {
+				if !reflect.DeepEqual(got, want) || stderr.Len() != 0 {
 					t.Fatal(got)
 				}
 			}

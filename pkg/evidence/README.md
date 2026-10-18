@@ -37,10 +37,10 @@ never imported fields.
 
 ## Store and locking
 
-`NewStore` requires an explicit root. The CLI suggestion is
-`XDG_DATA_HOME/curator/model-router/evidence`, with the local share directory as
-fallback (`TODO(decision)`). Every command accepts `--store DIR`, and every test
-passes `t.TempDir()`.
+`NewStore` requires an explicit root. The CLI default is
+`${XDG_DATA_HOME:-$HOME/.local/share}/swarma/router/evidence`. Every command accepts
+`--store DIR`, and every test passes `t.TempDir()`. See the
+[configuration and migration guide](../../docs/integration.md#configuration-inspection-and-migration).
 
 Imports, snapshots and views are immutable. The additional
 `registries/<digest>.json` directory retains the exact vocabulary projection bound

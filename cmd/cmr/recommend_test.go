@@ -18,6 +18,10 @@ func cliEnvironment(t *testing.T) string {
 	t.Setenv("HOME", root)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
 	t.Setenv("XDG_STATE_HOME", filepath.Join(root, "state"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(root, "data"))
+	previousSystemRoot := cmrio.SystemConfigRoot
+	cmrio.SystemConfigRoot = filepath.Join(root, "system")
+	t.Cleanup(func() { cmrio.SystemConfigRoot = previousSystemRoot })
 	t.Setenv("PATH", root)
 	for _, key := range []string{"CODEX_HOME", "CLAUDE_CONFIG_DIR", "MUSE_HOME", "MUSE_CONFIG_DIR", "MUSE_AUTH_PATH", "MUSE_SESSIONS_DIR", "GEMINI_CLI_HOME", "CODEX_MANAGED_PACKAGE_ROOT"} {
 		t.Setenv(key, "")

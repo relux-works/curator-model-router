@@ -14,10 +14,8 @@
 // Existing stores require cmr evidence rebind with the new registry; old
 // snapshots remain replayable using their immutable registry projections.
 //
-// TODO(decision): the CLI default is XDG_DATA_HOME/curator/model-router/evidence,
-// with the local share directory as fallback. This keeps derived routing data
-// separate from credentials and launch configuration. Store always requires an
-// explicit root, and tests always pass a temporary directory.
+// Store always requires an explicit root; filesystem path policy belongs to the
+// command layer. Tests always pass a temporary directory.
 //
 // TODO(decision): require manual stale-lock recovery after confirming no writer.
 // Writers use current.lock with O_EXCL and never steal a stale lock. Following a

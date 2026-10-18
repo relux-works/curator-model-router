@@ -33,6 +33,7 @@ type shadowPick struct {
 
 type shadowObservation struct {
 	SchemaVersion     string     `json:"schema_version"`
+	PolicySource      string     `json:"policy_source,omitempty"`
 	Time              time.Time  `json:"time"`
 	DecisionID        *string    `json:"decision_id"`
 	Role              string     `json:"role"`
@@ -99,7 +100,7 @@ func newShadowObservation(o recommendOptions, parsed spawnArguments, policy reco
 	if budget == "" {
 		budget = "unknown"
 	}
-	observation := shadowObservation{SchemaVersion: "shadow-observation-v1", Time: at.UTC(), OriginalTaskClass: o.taskClass, Role: task.Role, TaskClass: task.TaskClass, Difficulty: task.Difficulty, Sensitivity: task.Sensitivity, Budget: budget, TaskBoardExitCode: status}
+	observation := shadowObservation{SchemaVersion: "shadow-observation-v1", PolicySource: o.policySource, Time: at.UTC(), OriginalTaskClass: o.taskClass, Role: task.Role, TaskClass: task.TaskClass, Difficulty: task.Difficulty, Sensitivity: task.Sensitivity, Budget: budget, TaskBoardExitCode: status}
 	if record.DecisionID != "" && recErr == nil {
 		observation.DecisionID = &record.DecisionID
 	}
@@ -285,48 +286,76 @@ func decodeShadowObservation(data []byte) (shadowObservation, bool) {
 	return observation, true
 }
 
-func readShadowReport(root string, since *time.Time) (shadowReport, error) {
+// Exact records are deduplicated by their JSON bytes, retaining unknown fields
+// in the identity so future additive metadata is never silently collapsed.
+func readShadowObservationsFromRoots(roots []string) ([]shadowObservation, bool, error) {
+	observations := []shadowObservation{}
+	seen := map[string]bool{}
+	truncated := false
+	for _, root := range roots {
+		f, err := os.Open(shadowObservationPath(root))
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return nil, false, &Refusal{Code: "cmr_shadow_read_failed", Message: "cannot read shadow observations"}
+		}
+		items, tail, err := readShadowObservationFile(f, seen)
+		closeErr := f.Close()
+		if err != nil {
+			return nil, false, err
+		}
+		if closeErr != nil {
+			return nil, false, &Refusal{Code: "cmr_shadow_read_failed", Message: "cannot close shadow observations"}
+		}
+		truncated = truncated || tail
+		observations = append(observations, items...)
+	}
+	sort.SliceStable(observations, func(i, j int) bool { return observations[i].Time.Before(observations[j].Time) })
+	return observations, truncated, nil
+}
+func readShadowObservationFile(f io.Reader, seen map[string]bool) ([]shadowObservation, bool, error) {
+	observations := []shadowObservation{}
+	reader := bufio.NewReaderSize(f, 64*1024)
+	for line := 1; ; line++ {
+		// A partial final record is expected when a concurrent append is interrupted.
+		raw, readErr := reader.ReadBytes('\n')
+		if readErr != nil && readErr != io.EOF {
+			return nil, false, &Refusal{Code: "cmr_shadow_read_failed", Message: "cannot read complete shadow observations"}
+		}
+		if len(raw) == 0 {
+			return observations, false, nil
+		}
+		terminated := raw[len(raw)-1] == '\n'
+		raw = bytes.TrimSuffix(bytes.TrimSuffix(raw, []byte("\n")), []byte("\r"))
+		o, valid := decodeShadowObservation(raw)
+		if !valid && !terminated {
+			return observations, true, nil
+		}
+		if !valid {
+			return nil, false, &Refusal{Code: "cmr_shadow_invalid_observation", Message: fmt.Sprintf("invalid shadow observation at line %d", line)}
+		}
+		if !seen[string(raw)] {
+			observations = append(observations, o)
+			seen[string(raw)] = true
+		}
+	}
+}
+
+func readShadowReport(root string, since *time.Time, additionalRoots ...string) (shadowReport, error) {
+	roots := append([]string{root}, additionalRoots...)
 	report := shadowReport{SchemaVersion: "shadow-report-v1", Since: since, AgreementDistribution: map[string]int{}, TopDivergences: []shadowDivergence{}, Refusals: []shadowRefusalCount{}, FailOpenByCode: []shadowRefusalCount{}, FailOpenLaunches: []shadowObservation{}}
 	for _, kind := range shadowAgreementKinds {
 		report.AgreementDistribution[kind] = 0
 	}
-	f, err := os.Open(shadowObservationPath(root))
-	if os.IsNotExist(err) {
-		return report, nil
-	}
+	observations, truncated, err := readShadowObservationsFromRoots(roots)
 	if err != nil {
-		return report, &Refusal{Code: "cmr_shadow_read_failed", Message: "cannot read shadow observations"}
+		return report, err
 	}
-	defer f.Close()
 	groups := map[string]shadowDivergence{}
 	refusals := map[string]int{}
 	failOpen := map[string]int{}
-	reader := bufio.NewReaderSize(f, 64*1024)
-	truncated := false
-	line := 0
-	for {
-		// ReadBytes has no line-length limit, so even an oversized partial
-		// tail is recognised as the final fragment instead of a read failure.
-		raw, readErr := reader.ReadBytes('\n')
-		if readErr != nil && readErr != io.EOF {
-			return report, &Refusal{Code: "cmr_shadow_read_failed", Message: "cannot read complete shadow observations"}
-		}
-		if len(raw) == 0 {
-			break
-		}
-		terminated := raw[len(raw)-1] == '\n'
-		raw = bytes.TrimSuffix(bytes.TrimSuffix(raw, []byte("\n")), []byte("\r"))
-		line++
-		o, valid := decodeShadowObservation(raw)
-		if !valid && !terminated {
-			// Only the final record can be unterminated. A complete record that
-			// lost just its newline still counts; a partial one is skipped.
-			truncated = true
-			break
-		}
-		if !valid {
-			return report, &Refusal{Code: "cmr_shadow_invalid_observation", Message: fmt.Sprintf("invalid shadow observation at line %d", line)}
-		}
+	for _, o := range observations {
 		if since != nil && o.Time.Before(*since) {
 			continue
 		}
@@ -468,7 +497,7 @@ func runShadow(args []string, stdout, stderr io.Writer) int {
 		parsed = parsed.UTC()
 		since = &parsed
 	}
-	report, err := readShadowReport(cmrio.StateRoot(), since)
+	report, err := readShadowReport(cmrio.StateRoot(), since, cmrio.LegacyStateRoot())
 	if err != nil {
 		return commandError(err, *asJSON, stdout, stderr)
 	}

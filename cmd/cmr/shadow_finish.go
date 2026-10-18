@@ -94,16 +94,19 @@ func runShadowFinish(args []string, _, _ io.Writer) int {
 		record recommend.DecisionRecord
 		parsed spawnArguments
 		policy recommend.Policy
+		source string
 		err    error
 	}
 	done := make(chan result, 1)
-	resolvedPolicy := make(chan recommend.Policy, 1)
+	resolvedPolicy := make(chan result, 1)
 	go func(o recommendOptions) {
 		var r result
-		r.policy, r.err = cmrio.LoadPolicy(o.policy)
+		var source cmrio.ConfigSource
+		r.policy, source, r.err = cmrio.LoadPolicyWithSource(o.policy)
+		r.source = source.Layer
 		if r.err == nil {
 			// Publish immutable metadata before any slow preflight or quota work.
-			resolvedPolicy <- r.policy
+			resolvedPolicy <- result{policy: r.policy, source: r.source}
 			o.loadedPolicy = &r.policy
 			r.record, r.parsed, r.err = spawnRecommendation(o, forwarded)
 		} else {
@@ -121,7 +124,8 @@ func runShadowFinish(args []string, _, _ io.Writer) int {
 			r.parsed, _ = parseSpawnArgs(forwarded)
 			r.err = &Refusal{Code: "advisory_timeout", Message: "advisory recommendation timed out"}
 			select {
-			case r.policy = <-resolvedPolicy:
+			case metadata := <-resolvedPolicy:
+				r.policy, r.source = metadata.policy, metadata.source
 			default:
 			}
 		}
@@ -134,6 +138,11 @@ func runShadowFinish(args []string, _, _ io.Writer) int {
 	cleanup, cleanupCancel := context.WithTimeout(context.Background(), time.Second)
 	defer cleanupCancel()
 	_ = processes.Close(cleanup)
+	if r.source == "" {
+		source, _ := cmrio.ResolveConfig("policy", o.policy)
+		r.source = source.Layer
+	}
+	o.policySource = r.source
 	policy, record, parsed, recErr := r.policy, r.record, r.parsed, r.err
 	observation := newShadowObservation(o, parsed, policy, record, recErr, status, time.Now().UTC())
 	if err := appendShadowObservation(cmrio.StateRoot(), observation); err != nil {

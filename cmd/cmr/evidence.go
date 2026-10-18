@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/relux-works/curator-model-router/internal/cmrio"
 	"github.com/relux-works/curator-model-router/pkg/canonical"
 	"github.com/relux-works/curator-model-router/pkg/evidence"
 	"io"
@@ -113,18 +114,7 @@ func loadEvidenceStore(c evidenceFlags) (*evidence.Store, evidence.Registry, err
 	}
 	root := c.store
 	if root == "" {
-		// TODO(decision): prefer XDG_DATA_HOME/curator/model-router/evidence;
-		// otherwise use the same layout under the user's local share directory.
-		// This keeps data separate from Curator configuration and authentication.
-		base := os.Getenv("XDG_DATA_HOME")
-		if base == "" {
-			home, e := os.UserHomeDir()
-			if e != nil {
-				return nil, r, &Refusal{"cmr_invalid_arguments", "cannot determine data root; pass --store"}
-			}
-			base = filepath.Join(home, ".local", "share")
-		}
-		root = filepath.Join(base, "curator", "model-router", "evidence")
+		root = filepath.Join(cmrio.DataRoot(), "evidence")
 	}
 	s, err := evidence.NewStore(root, r)
 	return s, r, err

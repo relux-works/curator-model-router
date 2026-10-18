@@ -13,6 +13,7 @@ import (
 	"github.com/relux-works/curator-model-router/pkg/recommend"
 )
 
+// A blocked preflight does not delay the original launch; detached advice preserves status, profile and silent output.
 func TestShadowSlowAdvisoryNeverDelaysLaunch(t *testing.T) {
 	root := cliEnvironment(t)
 	policy := filepath.Join(root, "policy.toml")
@@ -68,8 +69,9 @@ exec /bin/sleep 5
 	}
 	// The unfinished advice continues in a detached process and records the
 	// launched child's status once its own (failed) preflight returns.
-	if !strings.Contains(stderr.String(), "cmr:shadow advisory deferred to pid ") {
-		t.Fatal("advisory was not deferred", stderr.String())
+	// Detached advice is observable in storage without changing child stderr.
+	if stderr.Len() != 0 {
+		t.Fatal("advisory changed child output", stderr.String())
 	}
 	observation := waitShadowObservations(t, 1)[0]
 	if observation.CMRError == nil || observation.CMRError.Code == "advisory_timeout" || observation.TaskBoardExitCode != 23 || observation.TaskClass != "code.implement" || observation.OriginalTaskClass != "implementation" || observation.Budget != "economy" {
@@ -143,17 +145,18 @@ exec /bin/sleep 5
 	}
 }
 
+// Distinct advisory failures retain sanitized typed codes and aggregate by code without exposing provider diagnostics.
 func TestShadowSpecificSanitizedErrorsAndFailOpenGroups(t *testing.T) {
 	cliEnvironment(t)
 	at := time.Now()
-	for _, code := range []string{"preflight_timeout", "preflight_failed", "preflight_timeout", "invalid_task"} {
+	for i, code := range []string{"preflight_timeout", "preflight_failed", "preflight_timeout", "invalid_task"} {
 		original := "code"
 		err := error(&recommend.Refusal{Code: code, Message: "private-path provider-output"})
 		if code == "invalid_task" {
 			original = "x\nsecret"
 			err = &recommend.Refusal{Code: code, Message: `unknown class "x\nsecret"`}
 		}
-		o := newShadowObservation(recommendOptions{role: "developer", taskClass: original}, spawnArguments{}, recommend.DefaultPolicy(), recommend.DecisionRecord{}, err, 0, at)
+		o := newShadowObservation(recommendOptions{role: "developer", taskClass: original}, spawnArguments{}, recommend.DefaultPolicy(), recommend.DecisionRecord{}, err, 0, at.Add(time.Duration(i)*time.Nanosecond))
 		if o.CMRError == nil || o.CMRError.Code != code || strings.Contains(o.CMRError.Message, "private-path") || strings.Contains(o.CMRError.Message, "provider-output") || strings.Contains(o.CMRError.Message, "\n") {
 			t.Fatalf("%+v", o)
 		}

@@ -47,6 +47,7 @@ func waitShadowObservations(t *testing.T, n int) []shadowObservation {
 	}
 }
 
+// A fast child returns before slow advice, with unchanged stderr and one eventual observation.
 func TestShadowFastChildDefersAdvisory(t *testing.T) {
 	root := cliEnvironment(t)
 	t.Setenv("FAKE_LOG", filepath.Join(root, "argv"))
@@ -73,8 +74,9 @@ exit 0
 	if time.Since(started) > 900*time.Millisecond {
 		t.Fatal("wrapper waited for the slow preflight")
 	}
-	if !strings.Contains(stderr.String(), "cmr:shadow advisory deferred to pid ") {
-		t.Fatal("advisory was not deferred", stderr.String())
+	// Detached advice is observable in storage without changing child stderr.
+	if stderr.Len() != 0 {
+		t.Fatal("advisory changed child output", stderr.String())
 	}
 	o := waitShadowObservations(t, 1)
 	if len(o) != 1 {

@@ -20,6 +20,36 @@ Task-aware model routing for coding agents. Given a description of the work, its
 | `spec/track.md` | delivery track: workstreams W0–W5 and slices A0 to E |
 | `spec/model-routing.ru.md`, `spec/evidence-format.ru.md`, `spec/headroom.ru.md`, `spec/track.ru.md` | Russian translations (the English files are canonical) |
 
+## Configuration and storage
+
+cmr uses the `swarma/router/` element under each XDG root:
+
+| Kind | User location (when XDG variables are unset) | Contents |
+| --- | --- | --- |
+| Configuration | `$HOME/.config/swarma/router/` | `routing.toml`, `catalog.json` |
+| State | `$HOME/.local/state/swarma/router/` | decisions, shadow observations, usage cache, locks |
+| Data | `$HOME/.local/share/swarma/router/` | `evidence/` |
+
+`XDG_CONFIG_HOME`, `XDG_STATE_HOME` and `XDG_DATA_HOME` override the respective roots.
+Policy and catalog each use the first existing file: explicit `--policy`/`--catalog`,
+user config, `/etc/swarma/router/`, legacy config, then built-in defaults. Files win
+whole without merging layers; unreadable or malformed files refuse. Relative policy
+`catalog_overlay` paths resolve from the current working directory.
+
+For one release, legacy config means `$HOME/.curator/routing.toml` and
+`${XDG_CONFIG_HOME:-$HOME/.config}/curator/model-router/catalog.json`.
+Legacy history under the old state root is included in shadow reports, sorted by time
+and deduplicated. New writes, usage cache and locks use only the shared roots.
+The legacy fallback will be removed in the next minor release.
+
+`cmr config show [--json]` inspects effective paths, layers and all candidate
+existence checks without writing. Optional `--policy FILE` and `--catalog FILE`
+show explicit overrides. `cmr migrate [--dry-run] [--json]` copies legacy config,
+state and data, retains file modes, creates directories with mode 0700, and never
+deletes old files or overwrites existing destinations. Identical files with matching
+modes are no-ops; conflicts and IO errors are typed refusals. Each file is published
+atomically; retries can resume after an IO error. See [migration details](docs/integration.md#configuration-inspection-and-migration).
+
 ## How it fits
 
 - A Go library with caller adapters for task-board and `curator-run`; it creates no processes and imports none of its callers.
@@ -32,6 +62,9 @@ Task-aware model routing for coding agents. Given a description of the work, its
 
 ```sh
 cmr help
+cmr config show --json
+cmr migrate --dry-run
+cmr migrate
 cmr recommend --role developer --task-class code.implement
 cmr recommend --role developer --task-class code.implement --budget burn
 cmr recommend --role developer --task-class code.fix --difficulty hard --json
@@ -41,7 +74,7 @@ cmr usage show --json
 cmr spawn --task-class code.implement -- TASK --role developer --background
 cmr spawn --task-class code.fix --mode recommend --json -- TASK --role developer --background
 cmr spawn --task-class research --fanout --budget burn -- TASK --role researcher --background
-cmr spawn --task-class review.code --story "<STORY-ID>" --policy ~/.curator/routing.toml -- TASK --role reviewer --background
+cmr spawn --task-class review.code --story "<STORY-ID>" --policy ~/.config/swarma/router/routing.toml -- TASK --role reviewer --background
 ```
 
 Put the task brief, scope, acceptance criteria, and precondition resources on the board task before spawning. Task-board builds the agent prompt from the role template and that board state; `--instruction RESOURCE` selects a precondition resource.
@@ -79,3 +112,13 @@ using `cmr local coefficients --input FILE`. See the [local capability guide](do
 The library ships no production coefficients or new third-party rating numbers.
 
 Module license: [Apache-2.0](LICENSE), copyright Relux Works. Benchmark data retains its upstream terms described in NOTICE.
+
+## Tools
+
+Use Go 1.25.5 or later. `go build -o .temp/cmr ./cmd/cmr` builds the CLI;
+`go run ./cmd/cmr help` lists commands. `go vet ./...`, `go test ./... -count=1`
+and `go test -race ./cmd/cmr ./internal/cmrio` validate the code. Run
+`gofmt -w cmd internal pkg` to format Go sources. Build and scratch artifacts
+belong in `.temp/`; CLI records go to the state/data locations above.
+The Makefile also provides `make test`, `make race`, `make vet` and `make lint`
+(the last runs actionlint against `.github/workflows/`).
