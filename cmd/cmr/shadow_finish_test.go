@@ -55,7 +55,7 @@ func TestShadowFastChildDefersAdvisory(t *testing.T) {
 	script := `#!/bin/sh
 /usr/bin/printf '%s\n' "$@" >> "$FAKE_LOG"
 if [ "$1" = '--no-update-check' ]; then
-/bin/sleep 1
+/bin/sleep 5
 /bin/cat <<'PAYLOAD'
 {"enabled":true,"role":"developer","providers":{"allowed":["codex"],"target":"codex"},"resolved_role_ceiling":{"configured":true,"contract_version":"spawn-policy-v2","model_criterion":"less_or_equal","admitted_pairs":{"provider":"codex","models":[{"id":"gpt-6.1-sol","efforts":["high"]}]}},"workload_class_recommendation":{"configured":true,"class_resolved":true,"limit_read_integrity":{"determinate":true},"available_pairs":[{"runtime":"codex","model":"gpt-6.1-sol","reasoning_effort":"high"}]}}
 PAYLOAD
@@ -71,7 +71,9 @@ exit 0
 	if code != 0 {
 		t.Fatal(code, stderr.String())
 	}
-	if time.Since(started) > 900*time.Millisecond {
+	// The preflight takes 5 s; a wrapper that waited for it could not return
+	// within 3 s, while process start-up on a loaded runner fits easily.
+	if time.Since(started) > 3*time.Second {
 		t.Fatal("wrapper waited for the slow preflight")
 	}
 	// Detached advice is observable in storage without changing child stderr.
